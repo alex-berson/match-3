@@ -137,6 +137,10 @@ img {
     opacity: 1;
 }
 
+.selected {
+    background-color: whitesmoke;
+}
+
 #designed {
     text-align: center;
     align-self: auto;
@@ -157,30 +161,8 @@ img {
         background-color: black;
     }
 
-    .gray {
-        background-color: rgb(50,50,50);
-    }
-
     #designed {
         color: black;
-    }
-
-    @keyframes incorrect {
-        0% {
-            opacity: 0; 
-        }
-      
-        40% {
-            opacity: 0.5;
-        } 
-    
-        60% {
-            opacity: 0.5;
-        } 
-    
-        100% {
-            opacity: 0; 
-        } 
     }
 }
 
