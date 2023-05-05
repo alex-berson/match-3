@@ -137,6 +137,11 @@ img {
     opacity: 1;
 }
 
+.invisible {
+    opacity: 0;
+    transition: opacity 0.5s linear;
+}
+
 .selected {
     background-color: whitesmoke;
 }
