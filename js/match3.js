@@ -63,6 +63,23 @@ const fillBoard = () => {
     }
 }
 
+
+const redrawBoard = () => {
+
+    let images = document.querySelectorAll('img');
+
+    for (let i = 0; i < nRows; i++) {
+        for (let j = 0; j < nCols; j++) {
+
+            let val = board[i][j];
+
+            images[i * nCols + j].src = `images/fruits/${fruits[val]}.svg`;
+
+            images[i * nCols + j].classList.remove('invisible');
+        } 
+    }
+}
+
 const findMatches = (board) => {
 
     let matches = [];
@@ -192,11 +209,38 @@ const removeMatches = (matches) => {
 
             board[r][c] = 0;
 
-            // images[r * nCols + c].src = '';
             images[r * nCols + c].classList.add('invisible');
 
         }
     }
+}
+
+const compressGrid = () => {
+
+    // console.table(board);
+
+    for (let r = 0; r < nRows; r++) {
+        for (let c = 0; c < r; c++) {
+            [board[r][c], board[c][r]] = [board[c][r], board[r][c]];
+        }
+    }
+
+    for (let i = 0; i < board.length; i++) {
+        board[i] = board[i].filter(x => x != 0);
+        board[i] = [...Array(nCols - board[i].length).fill(0), ...board[i]];
+    }
+
+    console.table(board);
+
+
+    for (let r = 0; r < nRows; r++) {
+        for (let c = 0; c < r; c++) {
+            [board[r][c], board[c][r]] = [board[c][r], board[r][c]];
+        }
+    }
+
+    console.table(board);
+
 }
 
 const selectCell = (e) => {
@@ -235,6 +279,12 @@ const selectCell = (e) => {
         images[i].parentElement.classList.remove('selected');
 
         setTimeout(removeMatches, 100, matches);
+        setTimeout(() => {
+            
+            compressGrid();
+            redrawBoard();
+        
+        }, 500);
 
         return;
     }
