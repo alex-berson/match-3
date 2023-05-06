@@ -1,4 +1,6 @@
 let board, score;
+let nCols = 8;
+let nRows = 8;
 
 const fruits = {
     1:  'apple',
@@ -9,9 +11,6 @@ const fruits = {
     6:  'grapes',
 }
 
-let nCols = 8;
-let nRows = 8;
-
 const touchScreen = () => matchMedia('(hover: none)').matches;
 
 const initBoard = () => {
@@ -19,13 +18,13 @@ const initBoard = () => {
     score = 0;
 
     board = [[0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0]];
+             [0,0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0,0]];
 }
 
 const setBoardSize = () => {
@@ -40,7 +39,7 @@ const setBoardSize = () => {
 const validVal = (i, j, val) => {
 
     if (i > 1 && board[i - 1][j] == val && board[i - 2][j] == val) return false;
-    if (j > 1 && board[i][j -1] == val && board[i][j -2] == val) return false;
+    if (j > 1 && board[i][j - 1] == val && board[i][j - 2] == val) return false;
 
     return true;
 }
@@ -49,33 +48,37 @@ const fillBoard = () => {
 
     let images = document.querySelectorAll('img');
 
-    for (let i = 0; i < nRows; i++) {
-        for (let j = 0; j < nCols; j++) {
+    for (let r = 0; r < nRows; r++) {
+        for (let c = 0; c < nCols; c++) {
 
             let val;
 
             do {
                 val = Math.floor(Math.random() * 6) + 1;
-                board[i][j] = val;
-                images[i * nCols + j].src = `images/fruits/${fruits[val]}.svg`;
-            } while (!validVal(i, j, val));
+                board[r][c] = val;
+                images[r * nCols + c].src = `images/fruits/${fruits[val]}.svg`;
+            } while (!validVal(r, c, val));
         } 
     }
 }
-
 
 const redrawBoard = () => {
 
     let images = document.querySelectorAll('img');
 
-    for (let i = 0; i < nRows; i++) {
-        for (let j = 0; j < nCols; j++) {
+    for (let r = 0; r < nRows; r++) {
+        for (let c = 0; c < nCols; c++) {
+            if (board[r][c] == 0) board[r][c] = Math.floor(Math.random() * 6) + 1;
+        }
+    }
 
-            let val = board[i][j];
+    for (let r = 0; r < nRows; r++) {
+        for (let c = 0; c < nCols; c++) {
 
-            images[i * nCols + j].src = `images/fruits/${fruits[val]}.svg`;
+            let val = board[r][c];
 
-            images[i * nCols + j].classList.remove('invisible');
+            images[r * nCols + c].src = `images/fruits/${fruits[val]}.svg`;
+            images[r * nCols + c].classList.remove('invisible');
         } 
     }
 }
@@ -136,51 +139,7 @@ const validMove = (r1,c1,r2,c2) => {
 
     console.log(matches);
 
-
     return matches;
-    // let [r, c] = [r1, c1];
-    // let matches = [[r, c]];
-
-    // while (r > 0) {
-
-    //     r--;
-    //     if (tempBoard[r][c] != tempBoard[r1][c1]) break;
-    //     matches.push([r,c]);
-    // }
-
-    // [r, c] = [r1, c1];
-
-    // while (r < 7) {
-
-    //     r++;
-    //     if (tempBoard[r][c] != tempBoard[r1][c1]) break;
-    //     matches.push([r,c]);
-    // }
-
-    // [r, c] = [r1, c1];
-
-    // if (matches.length < 3) matches = [[r, c]];
-
-    // while (c > 0) {
-
-    //     c--;
-    //     if (tempBoard[r][c] != tempBoard[r1][c1]) break;
-    //     matches.push([r,c]);
-    // }
-
-    // [r, c] = [r1, c1];
-
-    // while (c < 7) {
-
-    //     c++;
-    //     if (tempBoard[r][c] != tempBoard[r1][c1]) break;
-    //     matches.push([r,c]);
-    // }
-
-    // return matches.length < 3 ? null : matches;
-
-    // return true;
-
 }
 
 const neighbour = (r1,c1,r2,c2) => {
@@ -204,13 +163,11 @@ const removeMatches = (matches) => {
 
             console.log(item);
 
-            let r = item[0];
-            let c = item[1];
+            let [r, c] = item;
 
             board[r][c] = 0;
 
             images[r * nCols + c].classList.add('invisible');
-
         }
     }
 }
@@ -232,7 +189,6 @@ const compressGrid = () => {
 
     console.table(board);
 
-
     for (let r = 0; r < nRows; r++) {
         for (let c = 0; c < r; c++) {
             [board[r][c], board[c][r]] = [board[c][r], board[r][c]];
@@ -241,6 +197,19 @@ const compressGrid = () => {
 
     console.table(board);
 
+}
+
+const cascade = (matches) => {
+
+    setTimeout(removeMatches, 100, matches);
+    setTimeout(() => {
+        compressGrid();
+        redrawBoard();
+
+        let matches = findMatches(board);
+
+        if (matches.length > 0) setTimeout(cascade, 200, matches);
+    }, 500);
 }
 
 const selectCell = (e) => {
@@ -278,13 +247,7 @@ const selectCell = (e) => {
 
         images[i].parentElement.classList.remove('selected');
 
-        setTimeout(removeMatches, 100, matches);
-        setTimeout(() => {
-            
-            compressGrid();
-            redrawBoard();
-        
-        }, 500);
+        cascade(matches);
 
         return;
     }
