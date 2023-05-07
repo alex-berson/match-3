@@ -65,7 +65,7 @@ h1 {
     text-align: center;
     font-size: 25.7vw;
     margin-top: -10px;
-    margin-bottom: 70px;
+    margin-bottom: -50px;
 }
 
 span {
@@ -83,6 +83,19 @@ body:hover {
     cursor: default;
 } 
 
+h3 {
+    /* margin: auto; */
+    text-align: center;
+    /* width: calc(var(--board-size) / 10); */
+    font-size: 10vw;
+    font-weight: bold;
+    margin-bottom: 10px;
+    /* background: linear-gradient(to right, var(--color1), var(--color2), var(--color3), var(--color4), var(--color5), var(--color6));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent; */
+    opacity: 0;
+}
 
 .board {
     display: grid;
@@ -135,6 +148,11 @@ img {
     width: calc(var(--board-size) / 8 * 0.8);
     height: calc(var(--board-size) / 8 * 0.8);
     opacity: 1;
+}
+
+.visible {
+    opacity: 1;
+    transition: opacity 0.5s linear;
 }
 
 .invisible {
@@ -190,6 +208,14 @@ img {
 
     h1 {
         font-size: 7.55em;
+        margin-top: -10px;
+        margin-bottom: -50px;
+    }
+
+    h3 {
+        /* width: calc(var(--board-size-big) / 7); */
+        font-size: 3em;
+        margin-bottom: 20px;
     }
 
     img {

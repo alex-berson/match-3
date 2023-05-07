@@ -199,9 +199,22 @@ const compressGrid = () => {
 
 }
 
+const updateScore = (matches) => {
+
+    let scoreEl = document.querySelector('h3');
+    score += matches.flat().length;
+
+    scoreEl.classList.add('visible');
+    scoreEl.firstChild.innerText = score;
+}
+
 const cascade = (matches) => {
 
-    setTimeout(removeMatches, 100, matches);
+    setTimeout(() => {
+        removeMatches(matches);
+        updateScore(matches)
+    }, 100);
+
     setTimeout(() => {
         compressGrid();
         redrawBoard();
