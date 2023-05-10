@@ -172,31 +172,56 @@ const removeMatches = (matches) => {
     }
 }
 
-const compressGrid = () => {
+// const compressCols = () => {
 
-    // console.table(board);
+//     // console.table(board);
 
-    for (let r = 0; r < nRows; r++) {
-        for (let c = 0; c < r; c++) {
-            [board[r][c], board[c][r]] = [board[c][r], board[r][c]];
+//     for (let r = 0; r < nRows; r++) {
+//         for (let c = 0; c < r; c++) {
+//             [board[r][c], board[c][r]] = [board[c][r], board[r][c]];
+//         }
+//     }
+
+//     for (let i = 0; i < board.length; i++) {
+//         board[i] = board[i].filter(x => x != 0);
+//         board[i] = [...Array(nCols - board[i].length).fill(0), ...board[i]];
+//     }
+
+//     console.table(board);
+
+//     for (let r = 0; r < nRows; r++) {
+//         for (let c = 0; c < r; c++) {
+//             [board[r][c], board[c][r]] = [board[c][r], board[r][c]];
+//         }
+//     }
+
+//     console.table(board);
+
+// }
+
+const compressCols = () => {
+
+    let slides = [];
+
+    for (let c = 0; c < nCols; c++) {
+        for (let r = nRows - 1; r >= 0; r--) {
+
+            if (board[r][c] != 0) continue;
+
+            for (let r2 = r - 1; r2 >= 0; r2--) {
+    
+                if (board[r2][c] != 0) {
+                    [board[r][c], board[r2][c]] = [board[r2][c], board[r][c]];
+                    slides.push([r2,c,r,c]);
+                    break;
+                }
+            }
         }
     }
 
-    for (let i = 0; i < board.length; i++) {
-        board[i] = board[i].filter(x => x != 0);
-        board[i] = [...Array(nCols - board[i].length).fill(0), ...board[i]];
-    }
+    console.log(slides);
 
-    console.table(board);
-
-    for (let r = 0; r < nRows; r++) {
-        for (let c = 0; c < r; c++) {
-            [board[r][c], board[c][r]] = [board[c][r], board[r][c]];
-        }
-    }
-
-    console.table(board);
-
+    return slides;
 }
 
 const updateScore = (matches) => {
@@ -208,6 +233,74 @@ const updateScore = (matches) => {
     scoreEl.firstChild.innerText = score;
 }
 
+const newItems = () => {
+
+    let images = document.querySelectorAll('img');
+
+    for (let r = 0; r < nRows; r++) {
+        for (let c = 0; c < nCols; c++) {
+            if (board[r][c] != 0) continue; 
+            
+            let val = Math.floor(Math.random() * 6) + 1
+
+            board[r][c] = val;
+            images[r * nCols + c].src = `images/fruits/${fruits[val]}.svg`;
+            // images[r * nCols + c].style.opacity = '';
+            images[r * nCols + c].style.removeProperty('opacity');
+            images[r * nCols + c].classList.remove('invisible');
+        }
+    }
+}
+const slideDown = (slides) => {
+
+    let n = 0;
+    let images = document.querySelectorAll('img');
+
+    slides.forEach(slide => {
+
+        n++;
+
+        let image1 = images[slide[0] * nCols + slide[1]]; 
+        let image2 = images[slide[2] * nCols + slide[3]]; 
+        let image1Rect = image1.getBoundingClientRect();
+        let image2Rect = image2.getBoundingClientRect();
+
+        image1.style.transition = 'transform 0.2s cubic-bezier(0.33, 0, 0.66, 0.33)';
+
+        image1.style.transform = `translate(${image2Rect.left - image1Rect.left}px, ${image2Rect.top - image1Rect.top}px`;
+
+        image1.addEventListener('transitionend', e => {
+
+            n--;
+
+            if (n > 0) return;
+        
+            slides.forEach(slide => {
+
+                let image1 = images[slide[0] * nCols + slide[1]]; 
+                let image2 = images[slide[2] * nCols + slide[3]]; 
+
+                image2.src = image1.src;
+                image2.classList.remove('invisible');
+                // image1.style.transition = ''
+                // image1.style.transform = '';
+
+                image1.style.removeProperty('transition');
+                image1.style.removeProperty('transform');
+
+                if (board[slide[0]][slide[1]] == 0) image1.style.opacity = 0;
+            });
+
+            newItems();
+
+            let matches = findMatches(board);
+
+            if (matches.length > 0) setTimeout(cascade, 0, matches);
+
+        }, {once: true});
+    });
+}
+
 const cascade = (matches) => {
 
     setTimeout(() => {
@@ -216,13 +309,19 @@ const cascade = (matches) => {
     }, 100);
 
     setTimeout(() => {
-        compressGrid();
-        redrawBoard();
+        let slides = compressCols();
+
+        if (slides.length > 0) {
+            slideDown(slides);
+            return;
+        }
+
+        newItems();
 
         let matches = findMatches(board);
 
-        if (matches.length > 0) setTimeout(cascade, 200, matches);
-    }, 500);
+        if (matches.length > 0) setTimeout(cascade, 0, matches);
+    }, 400);
 }
 
 const selectCell = (e) => {
@@ -309,6 +408,10 @@ const init = () => {
     initBoard();
     fillBoard();
     enableTouch();
+
+
+    // let el = document.querySelector('img');
+    // el.style.transform = 'translate(-50px,-50px)';
 }
 
-window.onload = () => document.fonts.ready.then(() => init());
+window.onload = () => document.fonts.ready.then(init());
