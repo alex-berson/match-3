@@ -1,6 +1,7 @@
 let board, score;
 let nCols = 8;
 let nRows = 8;
+let nSlides;
 
 const fruits = {
     1:  'apple',
@@ -172,33 +173,6 @@ const removeMatches = (matches) => {
     }
 }
 
-// const compressCols = () => {
-
-//     // console.table(board);
-
-//     for (let r = 0; r < nRows; r++) {
-//         for (let c = 0; c < r; c++) {
-//             [board[r][c], board[c][r]] = [board[c][r], board[r][c]];
-//         }
-//     }
-
-//     for (let i = 0; i < board.length; i++) {
-//         board[i] = board[i].filter(x => x != 0);
-//         board[i] = [...Array(nCols - board[i].length).fill(0), ...board[i]];
-//     }
-
-//     console.table(board);
-
-//     for (let r = 0; r < nRows; r++) {
-//         for (let c = 0; c < r; c++) {
-//             [board[r][c], board[c][r]] = [board[c][r], board[r][c]];
-//         }
-//     }
-
-//     console.table(board);
-
-// }
-
 const compressCols = () => {
 
     let slides = [];
@@ -251,8 +225,61 @@ const newItems = () => {
         }
     }
 }
+
+const endSlide = (slides) => {
+
+    console.log("SLIDE END");
+
+
+    let images = document.querySelectorAll('img:not(.new)');
+
+    slides.forEach(slide => {
+
+        let image1 = images[slide[0] * nCols + slide[1]]; 
+        let image2 = images[slide[2] * nCols + slide[3]]; 
+
+        image2.src = image1.src;
+        image2.classList.remove('invisible');
+        image1.style.removeProperty('transition');
+        image1.style.removeProperty('transform');
+        
+        if (board[slide[0]][slide[1]] == 0) {
+
+            let el = document.querySelector(`[data-row="${slide[0]}"][data-col="${slide[1]}"]`);
+
+            console.log(el);
+
+            image1.src = el.src;
+
+            el.remove();
+            
+            // image1.style.opacity = 0;
+        
+        }
+    });
+
+    let invisibles = document.querySelectorAll('.invisible');
+
+    invisibles.forEach(image => {
+
+        let i = [...images].indexOf(image);
+
+        console.log(i);
+
+        let [r, c] = [Math.trunc(i / nCols), i % nCols]; 
+
+        image.src = document.querySelector(`[data-row="${r}"][data-col="${c}"]`).src;
+
+        image.classList.remove('invisible');
+
+        document.querySelector(`[data-row="${r}"][data-col="${c}"]`).remove();
+    });
+}
+
 const slideDown = (slides) => {
 
+    let tempBoard = board.map(arr => arr.slice());
+    
     let n = 0;
     let images = document.querySelectorAll('img');
 
@@ -273,32 +300,116 @@ const slideDown = (slides) => {
 
             n--;
 
+            console.log('SLIDES', n);
+
+
             if (n > 0) return;
-        
-            slides.forEach(slide => {
 
-                let image1 = images[slide[0] * nCols + slide[1]]; 
-                let image2 = images[slide[2] * nCols + slide[3]]; 
+            // console.log(slides)
 
-                image2.src = image1.src;
-                image2.classList.remove('invisible');
-                // image1.style.transition = ''
-                // image1.style.transform = '';
+            console.log("SLIDES");
 
-                image1.style.removeProperty('transition');
-                image1.style.removeProperty('transform');
 
-                if (board[slide[0]][slide[1]] == 0) image1.style.opacity = 0;
-            });
+            endSlide(slides);
 
-            newItems();
+            board = tempBoard;
 
             let matches = findMatches(board);
 
-            if (matches.length > 0) setTimeout(cascade, 0, matches);
+            if (matches.length > 0) setTimeout(cascade, 100, matches);
+
+            // slides.forEach(slide => {
+
+            //     let image1 = images[slide[0] * nCols + slide[1]]; 
+            //     let image2 = images[slide[2] * nCols + slide[3]]; 
+
+            //     image2.src = image1.src;
+            //     image2.classList.remove('invisible');
+            //     image1.style.removeProperty('transition');
+            //     image1.style.removeProperty('transform');
+                
+            //     // image1.style.opacity = 0;
+
+            //     if (board[slide[0]][slide[1]] == 0) image1.style.opacity = 0;
+            // });
+
+            // newItems();
+
+            // let matches = findMatches(board);
+
+            // if (matches.length > 0) setTimeout(cascade, 0, matches);
 
         }, {once: true});
+
+        // let images = document.querySelectorAll('img');
+        
     });
+
+    let cells = document.querySelectorAll('.cell');
+
+    for (let c = 0; c < nCols; c++) {
+
+        let r1;
+
+        for (let r = nRows - 1; r >= 0; r--) {
+            if (board[r][c] != 0) continue; 
+
+            n++;
+            r1 = r1 || r + 1;
+
+            let offset = document.querySelectorAll(`[data-col="${c}"]`).length;
+            let delay = r1 == 1 ? 0 : 0.1 / (r1 - 1);
+            let image = document.createElement('img');
+
+            image.classList.add('new');
+            image.dataset.col = c;
+            image.dataset.row = r;
+
+            cells[cells.length - 1].after(image);
+
+            let image1 = images[c + 0]; 
+            let image2 = images[c + 8]; 
+            let image0Rect = image.getBoundingClientRect();
+            let image1Rect = image1.getBoundingClientRect();
+            let image2Rect = image2.getBoundingClientRect();
+
+            let val = Math.floor(Math.random() * 6) + 1
+
+            tempBoard[r][c] = val;
+
+            image.src = `images/fruits/${fruits[val]}.svg`;
+            image.style.transform = `translate(${image1Rect.left - image0Rect.left}px, ${image1Rect.top - image0Rect.top - (image2Rect.top - image1Rect.top) * (offset + 1)}px`;
+
+            let style = window.getComputedStyle(image);
+            let matrix = new WebKitCSSMatrix(style.transform);
+
+            image.style.transition = `transform 0.2s cubic-bezier(0.33, 0, 0.66, 0.33), opacity 0.1s ${offset * delay}s ease-in`;
+
+            image.style.transform = `translate(${Math.round(matrix.m41)}px, ${Math.round(matrix.m42 + (image2Rect.top - image1Rect.top) * r1)}px)`;
+            image.style.opacity = 1;
+
+            image.addEventListener('transitionend', e => {
+
+
+                n--;
+
+                console.log('NEW', n);
+
+                if (n > 0) return;
+
+                console.log("NEW");
+
+                endSlide(slides);
+
+                board = tempBoard;
+
+                let matches = findMatches(board);
+
+                if (matches.length > 0) setTimeout(cascade, 100, matches);
+
+            }, {once: true});
+        }
+    }
 }
 
 const cascade = (matches) => {
@@ -312,15 +423,20 @@ const cascade = (matches) => {
         let slides = compressCols();
 
         if (slides.length > 0) {
+            // nSlides = 0;
             slideDown(slides);
+            // newItems2();
             return;
         }
 
-        newItems();
+        slideDown(slides);
 
-        let matches = findMatches(board);
+        // newItems2();
+        // newItems();
 
-        if (matches.length > 0) setTimeout(cascade, 0, matches);
+        // let matches = findMatches(board);
+
+        // if (matches.length > 0) setTimeout(cascade, 100, matches);
     }, 400);
 }
 
@@ -401,6 +517,133 @@ const disableTapZoom = () => {
     document.body.addEventListener(event, preventDefault, {passive: false});
 }
 
+const slideUp = () => {
+
+    let images = document.querySelectorAll('img');
+    let image1 = images[3]; 
+    let image2 = images[11]; 
+
+    let image1Rect = image1.getBoundingClientRect();
+    let image2Rect = image2.getBoundingClientRect();
+
+    image1.style.transform = `translateY(${image1Rect.top - image2Rect.top}px)`;
+}
+
+const newItems2 = () => {
+
+    let images = document.querySelectorAll('img');
+    let cells = document.querySelectorAll('.cell');
+
+    for (let c = 0; c < nCols; c++) {
+
+        let r1;
+
+        for (let r = nRows - 1; r >= 0; r--) {
+
+            if (board[r][c] != 0) continue; 
+
+            r1 = r1 || r + 1;
+
+            let  n = document.querySelectorAll(`[data-col="${c}"]`).length;
+            let delay = r1 == 1 ? 0 : 0.1 / (r1 - 1);
+            let image = document.createElement('img');
+
+            image.classList.add('new');
+            image.dataset.col = c;
+            image.dataset.row = r;
+
+
+            cells[cells.length - 1].after(image);
+
+            let image1 = images[c + 0]; 
+            let image2 = images[c + 8]; 
+            let image0Rect = image.getBoundingClientRect();
+            let image1Rect = image1.getBoundingClientRect();
+            let image2Rect = image2.getBoundingClientRect();
+
+            let val = Math.floor(Math.random() * 6) + 1
+
+            // board[r][c] = val;
+
+            image.src = `images/fruits/${fruits[val]}.svg`;
+            image.style.transform = `translate(${image1Rect.left - image0Rect.left}px, ${image1Rect.top - image0Rect.top - (image2Rect.top - image1Rect.top) * (n + 1)}px`;
+
+            let style = window.getComputedStyle(image);
+            let matrix = new WebKitCSSMatrix(style.transform);
+
+            image.style.transition = `transform 0.2s cubic-bezier(0.33, 0, 0.66, 0.33), opacity 0.1s ${n * delay}s ease-in`;
+
+            image.style.transform = `translate(${Math.round(matrix.m41)}px, ${Math.round(matrix.m42 + (image2Rect.top - image1Rect.top) * r1)}px)`;
+            image.style.opacity = 1;
+
+            // image.addEventLstener('transitionend', e => {
+
+
+            //     n--;
+
+            //     if (n == 0) console.log('ZERO');
+
+            //     image1.src = image.src;
+            //     image1.classList.remove('invisible');
+            //     image1.style.opacity = '';
+            //     image.remove();
+
+            // }, {once: true});
+        }
+    }
+}
+
+// const newImage = (col) => {
+
+//     console.log(col);
+
+//     let cells = document.querySelectorAll('.cell');
+//     let images = document.querySelectorAll('img');
+
+//     let image = document.createElement('img');
+
+//     image.classList.add('new');
+//     image.dataset.col = col;
+
+//     cells[cells.length - 1].after(image);
+
+//     let image1 = images[col + 0]; 
+//     let image2 = images[col + 8]; 
+
+//     let image0Rect = image.getBoundingClientRect();
+//     let image1Rect = image1.getBoundingClientRect();
+//     let image2Rect = image2.getBoundingClientRect();
+
+//     let val = Math.floor(Math.random() * 6) + 1
+
+//     image.src = `images/fruits/${fruits[val]}.svg`;
+
+//     image.style.transform = `translate(${image1Rect.left - image0Rect.left}px, ${image1Rect.top - image0Rect.top - (image2Rect.top - image1Rect.top)}px`;
+
+
+//     let style = window.getComputedStyle(image);
+//     let matrix = new WebKitCSSMatrix(style.transform);
+
+//     image.style.transition = 'transform 0.2s cubic-bezier(0.33, 0, 0.66, 0.33), opacity 0.5s ease-in';
+
+
+//     image.style.transform = `translate(${Math.round(matrix.m41)}px, ${Math.round(matrix.m42 + (image2Rect.top - image1Rect.top))}px)`;
+//     image.style.opacity = 1;
+
+//     // image.addEventListener('transitionend', e => {
+
+
+//     //     image2.src = image1.src;
+//     //     image2.classList.remove('invisible');
+
+//     // }, {once: true});
+
+
+
+//     // image.style.removeProperty('opacity');
+//     // image.classList.remove('invisible');
+// }
+
 const init = () => {
 
     disableTapZoom();
@@ -410,8 +653,9 @@ const init = () => {
     enableTouch();
 
 
-    // let el = document.querySelector('img');
-    // el.style.transform = 'translate(-50px,-50px)';
+    // slideUp();
+
+    // newImage(1);
 }
 
 window.onload = () => document.fonts.ready.then(init());
