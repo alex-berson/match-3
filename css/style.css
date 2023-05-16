@@ -133,8 +133,9 @@ h3 {
 .cell {
     /* box-sizing: border-box; */
     display: grid;
-    justify-content: center;
-    align-content: center;
+    /* justify-content: center; */
+    /* align-content: center; */
+    place-items: center;
     color: white;
     font-size: 3.5em;
     background-color: white;
@@ -167,7 +168,7 @@ img {
 }
 
 .selected {
-    background-color: whitesmoke;
+    background-color: pink;
 }
 
 #designed {
