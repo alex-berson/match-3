@@ -1,43 +1,44 @@
 let board, score;
-let nCols = 8;
-let nRows = 8;
-let startX, startY;
-let swiped = false;
-let touchEnd = false;
-let touchID;
 
-const fruits = {
-    1:  'apple',
-    2:  'tangerine',
-    3:  'lemon',
-    4:  'kiwi',
-    5:  'blueberries',
-    6:  'grapes',
+const N_COLS = 7;
+const N_ROWS = 7;
+const N_SHAPES = 6;
+
+const shapes = {
+    1:  'circle',
+    2:  'triangle',
+    3:  'square',
+    4:  'pentagon',
+    5:  'hexagon',
+    6:  'octagon'
 }
 
-const touchScreen = () => matchMedia('(hover: none)').matches;
+const showBoard = () => document.body.classList.add('visible');
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const neighbour = (r1,c1,r2,c2) => (Math.abs(r2 - r1) + Math.abs(c2 - c1) == 1);
 
 const initBoard = () => {
 
     score = 0;
 
-    board = [[0,0,0,0,0,0,0,0],
-             [0,0,0,0,0,0,0,0],
-             [0,0,0,0,0,0,0,0],
-             [0,0,0,0,0,0,0,0],
-             [0,0,0,0,0,0,0,0],
-             [0,0,0,0,0,0,0,0],
-             [0,0,0,0,0,0,0,0],
-             [0,0,0,0,0,0,0,0]];
+    board = [[0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0],
+             [0,0,0,0,0,0,0]];
 }
 
 const setBoardSize = () => {
 
-    let minSide = screen.height > screen.width ? screen.width : window.innerHeight;
-    let cssBoardSize = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--board-size'));
-    let boardSize = Math.ceil(minSide * cssBoardSize / nCols) * nCols;
+    let minSide = window.innerHeight > window.innerWidth ? window.innerWidth : window.innerHeight;
+    let cssBoardSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--board-size')) / 100;
+    let boardSize = Math.ceil(minSide * cssBoardSize / N_COLS) * N_COLS;
 
-    document.documentElement.style.setProperty('--board-size', boardSize + 'px');
+    document.documentElement.style.setProperty('--board-size', `${boardSize}px`);
 }
 
 const validVal = (i, j, val) => {
@@ -48,56 +49,167 @@ const validVal = (i, j, val) => {
     return true;
 }
 
-const fillBoard = () => {
+const fillBoard = async () => {
 
-    let images = document.querySelectorAll('img');
+    let cells = document.querySelectorAll('.cell');
+    let figures = document.querySelectorAll('.figure');
 
-    for (let r = 0; r < nRows; r++) {
-        for (let c = 0; c < nCols; c++) {
+    for (let r = 0; r < N_ROWS; r++) {
+        for (let c = 0; c < N_COLS; c++) {
 
             let val;
 
             do {
-                val = Math.floor(Math.random() * 6) + 1;
-                board[r][c] = val;
-                images[r * nCols + c].src = `images/fruits/${fruits[val]}.svg`;
+                val = Math.floor(Math.random() * N_SHAPES) + 1;
             } while (!validVal(r, c, val));
+
+            board[r][c] = val;
+
+            let idx = r * N_COLS + c;
+            let figure = figures[idx];
+            figures[idx].firstChild.src = `images/figures/${shapes[val]}.svg`;
+
+            figure.dataset.r = r;
+            figure.dataset.c = c;
+
+            let [offsetX, offsetY] = getOffsets(figures[idx], cells[idx]);
+        
+            figure.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
         } 
     }
 }
 
-const redrawBoard = () => {
+const getOffsets = (figure, cell) => {
 
-    let images = document.querySelectorAll('img');
+    let figureRect = figure.getBoundingClientRect();
+    let cellRect = cell.getBoundingClientRect();
+    let offsetX = cellRect.left - figureRect.left + (cellRect.width - figureRect.width) / 2;
+    let offsetY = cellRect.top - figureRect.top + (cellRect.height - figureRect.height) / 2;
 
-    for (let r = 0; r < nRows; r++) {
-        for (let c = 0; c < nCols; c++) {
-            if (board[r][c] == 0) board[r][c] = Math.floor(Math.random() * 6) + 1;
-        }
+    return [offsetX, offsetY];
+}
+
+const selectCell = async (e) => {
+
+    let figure = e.currentTarget;
+    let cells = document.querySelectorAll('.cell');
+    let figures = document.querySelectorAll('.figure');
+    let i = [...figures].indexOf(figure);
+    let [r, c] = [Number(figure.dataset.r), Number(figure.dataset.c)];
+    let cell = cells[r * N_COLS + c];
+
+    if (cell.classList.contains('selected')) {
+        cell.classList.remove('selected');
+        return;
     }
 
-    for (let r = 0; r < nRows; r++) {
-        for (let c = 0; c < nCols; c++) {
+    i = [...cells].findIndex(cell => cell.classList.contains('selected'));
 
-            let val = board[r][c];
-
-            images[r * nCols + c].src = `images/fruits/${fruits[val]}.svg`;
-            images[r * nCols + c].classList.remove('invisible');
-        } 
+    if (i == -1) {
+        cell.classList.add('selected');
+        return;
     }
+
+    let [r2, c2] = [Math.trunc(i / N_COLS), i % N_COLS];
+
+    cells[i].classList.remove('selected');
+
+    if (!neighbour(r,c,r2,c2)) {
+        cells[r * N_COLS + c].classList.add('selected');
+        return;
+    }
+
+    disableTouch();
+    await swapFigures(r, c, r2, c2);
+    enableTouch();
+}
+
+const swapFigures = async (r1,c1,r2,c2) => {
+
+    let cells = document.querySelectorAll('.cell');
+    let figure1 = document.querySelector(`.figure[data-r="${r1}"][data-c="${c1}"]`);
+    let figure2 = document.querySelector(`.figure[data-r="${r2}"][data-c="${c2}"]`);
+    let [offsetX1, offsetY1] = getOffsets(figure1, cells[r2 * N_COLS + c2]);
+    let [offsetX2, offsetY2] = getOffsets(figure2, cells[r1 * N_COLS + c1]);
+    let style1 = window.getComputedStyle(figure1);
+    let style2 = window.getComputedStyle(figure2);
+    let matrix1 = new WebKitCSSMatrix(style1.transform);
+    let matrix2 = new WebKitCSSMatrix(style2.transform);
+
+    figure1.classList.add('move');
+    figure2.classList.add('move', 'upper');
+
+    figure1.style.transform = `translate(${matrix1.m41 + offsetX1}px, ${matrix1.m42 + offsetY1}px)`;
+    figure2.style.transform = `translate(${matrix2.m41 + offsetX2}px, ${matrix2.m42 + offsetY2}px)`;
+
+    let matches = validMove(r1,c1,r2,c2);
+
+    if (matches.length > 0) {
+
+        [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+
+        figure1.dataset.r = r2;
+        figure1.dataset.c = c2;
+        figure2.dataset.r = r1;
+        figure2.dataset.c = c1;
+
+        await Promise.all([figure1, figure2].map(figure => new Promise(resolve => {
+
+            figure.addEventListener('transitionend', () => {
+
+                figure.classList.remove('move', 'upper');
+
+                resolve();
+
+            }, {once: true});
+        })));
+
+        await sleep(0);
+        await updateBoard(matches);
+
+        return;
+    }
+
+    await Promise.all([figure1, figure2].map(figure => new Promise(resolve => {
+        figure.addEventListener('transitionend', () => resolve(), {once: true});
+    })));
+
+    figure1.style.transform = `translate(${matrix1.m41}px, ${matrix1.m42}px)`;
+    figure2.style.transform = `translate(${matrix2.m41}px, ${matrix2.m42}px)`;
+
+    await Promise.all([figure1, figure2].map(figure => new Promise(resolve => {
+
+        figure.addEventListener('transitionend', () => {
+
+            figure.classList.remove('move', 'upper');
+
+            resolve();
+
+        }, {once: true});
+    })));
+}
+
+const validMove = (r1,c1,r2,c2) => { 
+
+    if (!neighbour(r1,c1,r2,c2)) return [];
+
+    let tempBoard = board.map(arr => arr.slice());
+
+    [tempBoard[r1][c1], tempBoard[r2][c2]] = [tempBoard[r2][c2], tempBoard[r1][c1]];
+
+    return findMatches(tempBoard);
 }
 
 const findMatches = (board) => {
 
     let matches = [];
 
-    for (let r = 0; r < nRows; r++) {
-        for (let c = 0; c < nCols; c++) {
+    for (let r = 0; r < N_ROWS; r++) {
+        for (let c = 0; c < N_COLS; c++) {
 
-            let match = [[r, c]];
-            let c2;
+            let c2, match = [[r, c]];
 
-            for (c2 = c + 1; c2 < nCols; c2++) {
+            for (c2 = c + 1; c2 < N_COLS; c2++) {
                 if (board[r][c2] != board[r][c]) break;
                 match.push([r, c2]);
             }
@@ -109,13 +221,12 @@ const findMatches = (board) => {
         }
     }
 
-    for (let c = 0; c < nCols; c++) {
-        for (let r = 0; r < nRows; r++) {
+    for (let c = 0; c < N_COLS; c++) {
+        for (let r = 0; r < N_ROWS; r++) {
 
-            let match = [[r, c]];
-            let r2;
+            let r2, match = [[r, c]];
 
-            for (r2 = r + 1; r2 < nRows; r2++) {
+            for (r2 = r + 1; r2 < N_ROWS; r2++) {
                 if (board[r2][c] != board[r][c]) break;
                 match.push([r2, c]);
             }
@@ -130,58 +241,46 @@ const findMatches = (board) => {
     return matches;
 }
 
-const validMove = (r1,c1,r2,c2) => { 
+const updateBoard = async (matches) => {
 
-    if (!neighbour(r1,c1,r2,c2)) return false;
-    // if (board[r1][c1] == board[r2][c2]) return false;
-
-    let tempBoard = board.map(arr => arr.slice());
-
-    [tempBoard[r1][c1], tempBoard[r2][c2]] = [tempBoard[r2][c2], tempBoard[r1][c1]];
-
-    let matches = findMatches(tempBoard);
-
-    console.log(matches);
-
-    return matches;
-}
-
-const neighbour = (r1,c1,r2,c2) => {
-
-    if (Math.abs(r2 - r1) + Math.abs(c2 - c1) == 1) return true;
-
-    return false;
+    removeMatches(matches);
+    updateScore(matches);
+    await sleep(300);
+    await slideDown();
 }
 
 const removeMatches = (matches) => {
 
-    console.log(matches);
-
-    let images = document.querySelectorAll('img');
-
     for (let match of matches) {
-
-        console.log(match);
-
         for (let item of match) {
 
-            console.log(item);
-
             let [r, c] = item;
+            let figure = document.querySelector(`.figure[data-r="${r}"][data-c="${c}"]`);
 
             board[r][c] = 0;
 
-            images[r * nCols + c].classList.add('invisible');
+            figure.classList.add('invisible');
+            figure.addEventListener('transitionend', figure.remove, {once: true});
         }
     }
 }
 
-const compressCols = () => {
+const updateScore = (matches) => {
 
-    let slides = [];
+    let scoreEl = document.querySelector('.score');
+    score += matches.flat().length;
 
-    for (let c = 0; c < nCols; c++) {
-        for (let r = nRows - 1; r >= 0; r--) {
+    scoreEl.classList.add('visible');
+    scoreEl.innerText = score;
+}
+
+const compressColumns = () => {
+
+    let falling = [];
+    let empty = [];
+
+    for (let c = 0; c < N_COLS; c++) {
+        for (let r = N_ROWS - 1; r >= 0; r--) {
 
             if (board[r][c] != 0) continue;
 
@@ -189,516 +288,164 @@ const compressCols = () => {
     
                 if (board[r2][c] != 0) {
                     [board[r][c], board[r2][c]] = [board[r2][c], board[r][c]];
-                    slides.push([r2,c,r,c]);
+                    falling.push([r2,c,r,c]);
                     break;
                 }
             }
         }
     }
 
-    console.log(slides);
+    for (let c = 0; c < N_COLS; c++) {
 
-    return slides;
-}
+        let n = 0;
 
-const updateScore = (matches) => {
-
-    let scoreEl = document.querySelector('h3');
-    score += matches.flat().length;
-
-    scoreEl.classList.add('visible');
-    scoreEl.firstChild.innerText = score;
-}
-
-const newItems = () => {
-
-    let images = document.querySelectorAll('img');
-
-    for (let r = 0; r < nRows; r++) {
-        for (let c = 0; c < nCols; c++) {
-            if (board[r][c] != 0) continue; 
-            
-            let val = Math.floor(Math.random() * 6) + 1
-
-            board[r][c] = val;
-            images[r * nCols + c].src = `images/fruits/${fruits[val]}.svg`;
-            // images[r * nCols + c].style.opacity = '';
-            images[r * nCols + c].style.removeProperty('opacity');
-            images[r * nCols + c].classList.remove('invisible');
+        for (let r = N_ROWS - 1; r >= 0; r--) {
+            if (board[r][c] == 0) {
+                empty.push([n++, r, c]);
+            }
         }
     }
+
+    empty.sort((a, b) => a[0] - b[0]);
+
+    return [falling, empty];
 }
 
-const endSlide = (slides) => {
+const slideDown = async () => {
 
-    console.log("SLIDE END");
-
-
-    let images = document.querySelectorAll('img:not(.new)');
-
-    slides.forEach(slide => {
-
-        let image1 = images[slide[0] * nCols + slide[1]]; 
-        let image2 = images[slide[2] * nCols + slide[3]]; 
-
-        image2.src = image1.src;
-        image2.classList.remove('invisible');
-        image1.style.removeProperty('transition');
-        image1.style.removeProperty('transform');
-        
-        if (board[slide[0]][slide[1]] == 0) {
-
-            let el = document.querySelector(`[data-row="${slide[0]}"][data-col="${slide[1]}"]`);
-
-            console.log(el);
-
-            image1.src = el.src;
-
-            el.remove();
-            
-            // image1.style.opacity = 0;
-        
-        }
-    });
-
-    let invisibles = document.querySelectorAll('.invisible');
-
-    invisibles.forEach(image => {
-
-        let i = [...images].indexOf(image);
-
-        console.log(i);
-
-        let [r, c] = [Math.trunc(i / nCols), i % nCols]; 
-
-        image.src = document.querySelector(`[data-row="${r}"][data-col="${c}"]`).src;
-
-        image.classList.remove('invisible');
-
-        document.querySelector(`[data-row="${r}"][data-col="${c}"]`).remove();
-    });
-}
-
-const slideDown = (slides) => {
-
-    let tempBoard = board.map(arr => arr.slice());
-    
-    let n = 0;
-    let images = document.querySelectorAll('img');
-
-    slides.forEach(slide => {
-
-        n++;
-
-        let image1 = images[slide[0] * nCols + slide[1]]; 
-        let image2 = images[slide[2] * nCols + slide[3]]; 
-        let image1Rect = image1.getBoundingClientRect();
-        let image2Rect = image2.getBoundingClientRect();
-
-        image1.style.transition = 'transform 0.2s cubic-bezier(0.33, 0, 0.66, 0.33)';
-
-        image1.style.transform = `translate(${image2Rect.left - image1Rect.left}px, ${image2Rect.top - image1Rect.top}px`;
-
-        image1.addEventListener('transitionend', e => {
-
-            n--;
-
-            console.log('SLIDES', n);
-
-
-            if (n > 0) return;
-
-            // console.log(slides)
-
-            console.log("SLIDES");
-
-
-            endSlide(slides);
-
-            board = tempBoard;
-
-            let matches = findMatches(board);
-
-            matches.length > 0 ? setTimeout(cascade, 100, matches) : enableTouch();
-
-            // slides.forEach(slide => {
-
-            //     let image1 = images[slide[0] * nCols + slide[1]]; 
-            //     let image2 = images[slide[2] * nCols + slide[3]]; 
-
-            //     image2.src = image1.src;
-            //     image2.classList.remove('invisible');
-            //     image1.style.removeProperty('transition');
-            //     image1.style.removeProperty('transform');
-                
-            //     // image1.style.opacity = 0;
-
-            //     if (board[slide[0]][slide[1]] == 0) image1.style.opacity = 0;
-            // });
-
-            // newItems();
-
-            // let matches = findMatches(board);
-
-            // if (matches.length > 0) setTimeout(cascade, 0, matches);
-
-        }, {once: true});
-
-        // let images = document.querySelectorAll('img');
-        
-    });
-
+    let [falling, empty] = compressColumns();
     let cells = document.querySelectorAll('.cell');
 
-    for (let c = 0; c < nCols; c++) {
+    let fallingPromises = falling.map(item => new Promise(resolve => {
 
-        let r1;
+        let [r, c, r2, c2] = item;
+        let cell = cells[r2 * N_COLS + c2];
+        let figure = document.querySelector(`.figure[data-r="${r}"][data-c="${c}"]`);
+        let [offsetX, offsetY] = getOffsets(figure, cell);
+        let style = window.getComputedStyle(figure);
+        let matrix = new WebKitCSSMatrix(style.transform);
 
-        for (let r = nRows - 1; r >= 0; r--) {
-            if (board[r][c] != 0) continue; 
+        figure.dataset.r = r2;
+        figure.dataset.c = c2;
 
-            n++;
-            r1 = r1 || r + 1;
+        figure.classList.add('fall');
+        
+        requestAnimationFrame(() => {
+            figure.style.transform = `translate(${matrix.m41 + offsetX}px, ${matrix.m42 + offsetY}px)`;
+        });
 
-            let offset = document.querySelectorAll(`[data-col="${c}"]`).length;
-            let delay = r1 == 1 ? 0 : 0.1 / (r1 - 1);
-            let image = document.createElement('img');
+        figure.addEventListener('transitionend', () => {
+            figure.classList.remove('fall');
+            resolve();
+        }, {once: true});
+    }));
 
-            image.classList.add('new');
-            image.dataset.col = c;
-            image.dataset.row = r;
+    let emptyPromises = empty.map(item => new Promise(async resolve => {
+        
+        let [n, r, c] = item;
+        let img = document.createElement('img');
+        let figure = document.createElement('div');
+        let val = Math.floor(Math.random() * N_SHAPES) + 1;
+        let height = cells[0].getBoundingClientRect().height;
+        let delay = n * 200 / (n + r + 1);
 
-            cells[cells.length - 1].after(image);
+        if (delay > 0) await sleep(delay);
 
-            let image1 = images[c + 0]; 
-            let image2 = images[c + 8]; 
-            let image0Rect = image.getBoundingClientRect();
-            let image1Rect = image1.getBoundingClientRect();
-            let image2Rect = image2.getBoundingClientRect();
+        figure.classList.add('figure');
+        figure.appendChild(img);
+        cells[cells.length - 1].insertAdjacentElement('afterend', figure);
 
-            let val = Math.floor(Math.random() * 6) + 1
+        let [offsetX, offsetY] = getOffsets(figure, cells[c]);
+        offsetY = offsetY - height;
 
-            tempBoard[r][c] = val;
+        board[r][c] = val;
+            
+        figure.firstChild.src = `images/figures/${shapes[val]}.svg`;
+        figure.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
 
-            image.src = `images/fruits/${fruits[val]}.svg`;
-            image.style.transform = `translate(${image1Rect.left - image0Rect.left}px, ${image1Rect.top - image0Rect.top - (image2Rect.top - image1Rect.top) * (offset + 1)}px`;
+        [offsetX, offsetY] = getOffsets(figure, cells[r * N_COLS + c]);
 
-            let style = window.getComputedStyle(image);
-            let matrix = new WebKitCSSMatrix(style.transform);
+        let style = window.getComputedStyle(figure);
+        let matrix = new WebKitCSSMatrix(style.transform);
 
-            image.style.transition = `transform 0.2s cubic-bezier(0.33, 0, 0.66, 0.33), opacity 0.1s ${offset * delay}s ease-in`;
+        figure.dataset.r = r;
+        figure.dataset.c = c;
 
-            // image.style.transform = `translate(${Math.round(matrix.m41)}px, ${Math.round(matrix.m42 + (image2Rect.top - image1Rect.top) * r1)}px)`;
-            image.style.transform = `translate(${matrix.m41}px, ${matrix.m42 + (image2Rect.top - image1Rect.top) * r1}px)`;
+        figure.classList.add('fall', 'visible');
+        figure.style.transitionDuration = `${200 - delay}ms`;
 
-            image.style.opacity = 1;
+        requestAnimationFrame(() => {
+            figure.style.transform = `translate(${matrix.m41 + offsetX}px, ${matrix.m42 + offsetY}px)`;
+        });
 
-            image.addEventListener('transitionend', e => {
+        figure.addEventListener('transitionend', () => {
 
+            figure.classList.remove('fall');
+            figure.style.removeProperty('transition-duration');
 
-                n--;
+            resolve();
 
-                console.log('NEW', n);
+        }, { once: true });
+    }));
 
-                if (n > 0) return;
+    await Promise.all([...fallingPromises, ...emptyPromises]);
 
-                console.log("NEW");
-
-                endSlide(slides);
-
-                board = tempBoard;
-
-                let matches = findMatches(board);
-
-                matches.length > 0 ? setTimeout(cascade, 100, matches) : enableTouch();
-
-            }, {once: true});
-        }
-    }
-}
-
-const cascade = (matches) => {
-
-    setTimeout(() => {
-        removeMatches(matches);
-        updateScore(matches)
-    }, 100);
-
-    setTimeout(() => {
-        let slides = compressCols();
-
-        if (slides.length > 0) {
-            // nSlides = 0;
-            slideDown(slides);
-            // newItems2();
-            return;
-        }
-
-        slideDown(slides);
-
-        // newItems2();
-        // newItems();
-
-        // let matches = findMatches(board);
-
-        // if (matches.length > 0) setTimeout(cascade, 100, matches);
-    }, 400);
-}
-
-const selectCell = (e) => {
-
-    let cell = e.currentTarget;
-    let image = cell.firstChild;
-
-    let images = document.querySelectorAll('img');
-    let i = [...images].indexOf(image);
-    let [r, c] = [Math.trunc(i / nCols), i % nCols];
-
-    if (cell.classList.contains('selected')) {
-        cell.classList.remove('selected');
-        return;
-    }
-
-    i = [...images].findIndex(image => image.parentElement.classList.contains('selected'));
-
-    if (i == -1) {
-        cell.classList.add('selected');        
-        return;
-    }
-
-    let [r2, c2] = [Math.trunc(i / nCols), i % nCols];
-
-    let matches = validMove(r,c,r2,c2);
-
-    images[i].parentElement.classList.remove('selected');
+    let matches = findMatches(board);
 
     if (matches.length > 0) {
-
-        [board[r][c], board[r2][c2]] = [board[r2][c2], board[r][c]];
-
-        let image1 = images[r * nCols + c]; 
-        let image2 = images[r2 * nCols + c2]; 
-        let image1Rect = image1.getBoundingClientRect();
-        let image2Rect = image2.getBoundingClientRect();
-
-
-        let style1 = window.getComputedStyle(image1);
-        let matrix1 = new WebKitCSSMatrix(style1.transform);
-        let style2 = window.getComputedStyle(image2);
-        let matrix2 = new WebKitCSSMatrix(style2.transform);
-
-        image1.style.transition = `transform 0.2s ease`;
-        // image1.style.transform = `translate(${Math.round(matrix1.m41 + image2Rect.left - image1Rect.left)}px, ${Math.round(matrix1.m42 + image2Rect.top - image1Rect.top)}px`;
-        image1.style.transform = `translate(${matrix1.m41 + image2Rect.left - image1Rect.left}px, ${matrix1.m42 + image2Rect.top - image1Rect.top}px`;
-
-        image2.style.transition = `transform 0.2s ease`;
-        // image2.style.transform = `translate(${Math.round(matrix2.m41 + image1Rect.left - image2Rect.left)}px, ${Math.round(matrix2.m42 + image1Rect.top - image2Rect.top)}px`;
-        image2.style.transform = `translate(${matrix2.m41 + image1Rect.left - image2Rect.left}px, ${matrix2.m42 + image1Rect.top - image2Rect.top}px`;
-
-
-        let n = 2;
-
-        [image1, image2].forEach(image => {
-
-            image.addEventListener('transitionend', e => {
-
-                n--;
-
-                console.log('TRANSEND', n);
-
-                if (n > 0) return;
-
-                let tempImage = image1.src;
-                image1.src = image2.src;
-                image2.src = tempImage;  
-
-                image1.style.removeProperty('transition');
-                image1.style.removeProperty('transform');
-                image2.style.removeProperty('transition');
-                image2.style.removeProperty('transform');
-
-                cascade(matches);
-
-            }, {once: true});
-        });
-           
-
-        // tempImage = images[r * nCols + c].src;
-        // images[r * nCols + c].src = images[r2 * nCols + c2].src;
-        // images[r2 * nCols + c2].src = tempImage;    
-
-        // images[i].parentElement.classList.remove('selected');
-
-        // cascade(matches);
-
+        await sleep(100);
+        await updateBoard(matches);
         return;
     }
-
-    if (neighbour(r,c,r2,c2)) {
-
-        let image1 = images[r * nCols + c]; 
-        let image2 = images[r2 * nCols + c2]; 
-        let image1Rect = image1.getBoundingClientRect();
-        let image2Rect = image2.getBoundingClientRect();
-
-
-        let style1 = window.getComputedStyle(image1);
-        let matrix1 = new WebKitCSSMatrix(style1.transform);
-        let style2 = window.getComputedStyle(image2);
-        let matrix2 = new WebKitCSSMatrix(style2.transform);
-
-        image1.style.transition = `transform 0.2s ease`;
-        // image1.style.transform = `translate(${Math.round(matrix1.m41 + image2Rect.left - image1Rect.left)}px, ${Math.round(matrix1.m42 + image2Rect.top - image1Rect.top)}px`;
-        image1.style.transform = `translate(${matrix1.m41 + image2Rect.left - image1Rect.left}px, ${matrix1.m42 + image2Rect.top - image1Rect.top}px`;
-
-
-        image2.style.transition = `transform 0.2s ease`;
-        // image2.style.transform = `translate(${Math.round(matrix2.m41 + image1Rect.left - image2Rect.left)}px, ${Math.round(matrix2.m42 + image1Rect.top - image2Rect.top)}px`;
-        image2.style.transform = `translate(${matrix2.m41 + image1Rect.left - image2Rect.left}px, ${matrix2.m42 + image1Rect.top - image2Rect.top}px`;
-
-        let n = 2;
-        let n2 = 2;
-
-        [image1, image2].forEach(image => {
-
-            image.addEventListener('transitionend', e => {
-
-                n--;
-
-                if (n > 0) return;
-
-                image1.style.removeProperty('transform');
-                image2.style.removeProperty('transform');
-
-                [image1, image2].forEach(image => {
-
-                    image.addEventListener('transitionend', e => {
-
-                        n2--;
-        
-                        if (n2 > 0) return;
-        
-                        image1.style.removeProperty('transition');
-                        image2.style.removeProperty('transition');    
-
-                    }, {once: true});
-                });
-
-            }, {once: true});
-        });
-
-        return;
-    }
-
-    cell.classList.add('selected');        
 }
 
-// const enableTouch = () => {
+const startSwipe = (e) => {
 
-//     let images = document.querySelectorAll('img');
+    let figure = e.currentTarget;
+    let board = document.querySelector('.board');
+    let touch = e.touches[e.touches.length - 1];
 
-//     for (let image of images) {
+    board.dataset.touchId = touch.identifier;
+    board.dataset.startX = touch.clientX;
+    board.dataset.startY = touch.clientY;
+    board.dataset.r = figure.dataset.r;
+    board.dataset.c = figure.dataset.c;
 
-//         let event = touchScreen() ? 'touchstart' : 'mousedown';
-
-//         image.addEventListener(event, selectCell);
-//     }
-// }
-
-// const disableTouch = () => {
-
-//     let images = document.querySelectorAll('img');
-
-//     for (let image of images) {
-
-//         let event = touchScreen() ? 'touchstart' : 'mousedown';
-
-//         image.removeEventListener(event, selectCell);
-//     }
-// }
-
-const startTouch = (e) => {
-
-    disableTouch();
-
-    // touchEnd = false;
-    // swiped = false;
-    touchID = e.touches[e.touches.length - 1].identifier;
-
-    let image = e.currentTarget;
-
-    console.log(image);
-
-    image.classList.contains('cell') ? image.classList.add('selected') : image.parentElement.classList.add('selected');
-
-    // image.parentElement.classList.add('selected');
-
-    startX = e.touches[e.touches.length - 1].clientX;
-    startY = e.touches[e.touches.length - 1].clientY;
-
-    console.log(startX, startY);
-
-    document.querySelector('.board').addEventListener('touchmove', swipe);
-
-    setTouchEnd();
+    board.addEventListener('touchmove', processSwipe);
 }
 
-const setTouchEnd = () => document.querySelector('.board').addEventListener('touchend', e => {
+const processSwipe = (e) => {
 
-    for (let i = 0; i < e.touches.length; i++) {
-        if (e.touches[i].identifier == touchID) {
-            console.log('TOUCH NOT END');
-            setTouchEnd();
-            return;
-        }
-    }
+    let board = document.querySelector('.board');
+    let touchID = Number(board.dataset.touchId);
+    let touch = [...e.changedTouches].find(touch => touch.identifier == touchID);
 
-    console.log('TOUCH END');
+    if (!touch) return;
 
-    let selected =  document.querySelector('.selected');
-
-    if (selected) {
-        document.querySelector('.board').removeEventListener('touchmove', swipe);
-        selected.classList.remove('selected');
-        enableTouch();
-    }
-    
-}, {once: true});
-
-const swipe = (e) => {
-
-    let n = 0;
-
-    while (e.touches[n].identifier != touchID && n < e.touches.length) n++;
-
-    let currentX = e.touches[n].clientX;
-    let currentY = e.touches[n].clientY;
-    let dx = currentX - startX;
-    let dy = currentY - startY;
+    let currentX = touch.clientX;
+    let currentY = touch.clientY;
+    let dx = currentX - Number(board.dataset.startX);
+    let dy = currentY - Number(board.dataset.startY);
     let absDx = Math.abs(dx);
     let absDy = Math.abs(dy);
 
-    // if (!swiped && Math.max(absDx, absDy) > 10) {
-
     if (Math.max(absDx, absDy) > 10) {
-
 
         let direction = absDx > absDy ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
 
-        // swiped = true;
+        board.removeEventListener('touchmove', processSwipe);
 
-        document.querySelector('.board').removeEventListener('touchmove', swipe);
-
-        move(direction);
+        disableTouch();
+        endSwipe(direction);
     }
 }
 
-const move = (direction) => {
+const endSwipe = async (direction) => {
 
-    let images = document.querySelectorAll('img');
-    let i = [...images].findIndex(image => image.parentElement.classList.contains('selected'));
-    let [r, c] = [Math.trunc(i / nCols), i % nCols];
-    let [r2, c2] = [r, c];
+    let board = document.querySelector('.board');
+    let r = Number(board.dataset.r);
+    let c = Number(board.dataset.c);
+    let r2 = r, c2 = c;
 
     switch (direction) {
 
@@ -716,327 +463,51 @@ const move = (direction) => {
             break;
     }
 
-    images[i].parentElement.classList.remove('selected');
-
-    if (r2 < 0 || r2 >= nRows || c2 < 0 || c2 >= nCols) {
+    if (r2 < 0 || r2 >= N_ROWS || c2 < 0 || c2 >= N_COLS) {
         enableTouch();
         return;
     }
 
-    let matches = validMove(r,c,r2,c2);
-
-    if (matches.length == 0) {
-        let image1 = images[r * nCols + c]; 
-        let image2 = images[r2 * nCols + c2]; 
-        let image1Rect = image1.getBoundingClientRect();
-        let image2Rect = image2.getBoundingClientRect();
-
-
-        let style1 = window.getComputedStyle(image1);
-        let matrix1 = new WebKitCSSMatrix(style1.transform);
-        let style2 = window.getComputedStyle(image2);
-        let matrix2 = new WebKitCSSMatrix(style2.transform);
-
-        image1.style.transition = `transform 0.2s ease`;
-        // image1.style.transform = `translate(${Math.round(matrix1.m41 + image2Rect.left - image1Rect.left)}px, ${Math.round(matrix1.m42 + image2Rect.top - image1Rect.top)}px`;
-        image1.style.transform = `translate(${matrix1.m41 + image2Rect.left - image1Rect.left}px, ${matrix1.m42 + image2Rect.top - image1Rect.top}px`;
-
-        image2.style.transition = `transform 0.2s ease`;
-        // image2.style.transform = `translate(${Math.round(matrix2.m41 + image1Rect.left - image2Rect.left)}px, ${Math.round(matrix2.m42 + image1Rect.top - image2Rect.top)}px`;
-        image2.style.transform = `translate(${matrix2.m41 + image1Rect.left - image2Rect.left}px, ${matrix2.m42 + image1Rect.top - image2Rect.top}px`;
-
-        let n = 2;
-        let n2 = 2;
-
-        [image1, image2].forEach(image => {
-
-            image.addEventListener('transitionend', e => {
-
-                n--;
-
-                if (n > 0) return;
-
-                image1.style.removeProperty('transform');
-                image2.style.removeProperty('transform');
-
-                [image1, image2].forEach(image => {
-
-                    image.addEventListener('transitionend', e => {
-
-                        n2--;
-        
-                        if (n2 > 0) return;
-        
-                        image1.style.removeProperty('transition');
-                        image2.style.removeProperty('transition');   
-                        
-                        enableTouch();
-
-
-                    }, {once: true});
-                });
-
-            }, {once: true});
-        });
-
-        return;
-        // enableTouch();
-        return;
-    }
-    // if (matches.length > 0) {
-
-    [board[r][c], board[r2][c2]] = [board[r2][c2], board[r][c]];
-
-    let image1 = images[r * nCols + c]; 
-    let image2 = images[r2 * nCols + c2]; 
-    let image1Rect = image1.getBoundingClientRect();
-    let image2Rect = image2.getBoundingClientRect();
-
-
-    let style1 = window.getComputedStyle(image1);
-    let matrix1 = new WebKitCSSMatrix(style1.transform);
-    let style2 = window.getComputedStyle(image2);
-    let matrix2 = new WebKitCSSMatrix(style2.transform);
-
-    image1.style.transition = `transform 0.2s ease`;
-    // image1.style.transform = `translate(${Math.round(matrix1.m41 + image2Rect.left - image1Rect.left)}px, ${Math.round(matrix1.m42 + image2Rect.top - image1Rect.top)}px`;
-    image1.style.transform = `translate(${matrix1.m41 + image2Rect.left - image1Rect.left}px, ${matrix1.m42 + image2Rect.top - image1Rect.top}px`;
-
-
-    image2.style.transition = `transform 0.2s ease`;
-    // image2.style.transform = `translate(${Math.round(matrix2.m41 + image1Rect.left - image2Rect.left)}px, ${Math.round(matrix2.m42 + image1Rect.top - image2Rect.top)}px`;
-    image2.style.transform = `translate(${matrix2.m41 + image1Rect.left - image2Rect.left}px, ${matrix2.m42 + image1Rect.top - image2Rect.top}px`;
-
-    let n = 2;
-
-    [image1, image2].forEach(image => {
-
-        image.addEventListener('transitionend', e => {
-
-            n--;
-
-            console.log('TRANSEND', n);
-
-            if (n > 0) return;
-
-            let tempImage = image1.src;
-            image1.src = image2.src;
-            image2.src = tempImage;  
-
-            image1.style.removeProperty('transition');
-            image1.style.removeProperty('transform');
-            image2.style.removeProperty('transition');
-            image2.style.removeProperty('transform');
-
-            cascade(matches);
-
-        }, {once: true});
-    });
-
-
-    // tempImage = images[r * nCols + c].src;
-    // images[r * nCols + c].src = images[r2 * nCols + c2].src;
-    // images[r2 * nCols + c2].src = tempImage;    
-
-    // cascade(matches);
-
-        // return;
-    // }
-
-    // enableTouch();
+    await swapFigures(r2, c2, r, c);
+    enableTouch();
 }
 
 const enableTouch = () => {
 
-    document.querySelectorAll('.cell').forEach((cell) => {
+    let figures = document.querySelectorAll('.figure');
 
-        if (touchScreen()){
-            cell.addEventListener('touchstart', startTouch);
-        } else {
-            cell.addEventListener('mousedown', selectCell);
-        }
+    figures.forEach(figure => {
+        figure.addEventListener('touchstart', startSwipe);
+        figure.addEventListener('mousedown', selectCell);
     });
-
-    // document.querySelectorAll('img').forEach((img) => {
-
-    //     if (touchScreen()){
-    //         img.addEventListener('touchstart', startTouch);
-    //     } else {
-    //         img.addEventListener('mousedown', selectCell);
-    //     }
-    // });
 }
 
 const disableTouch = () => {
 
-    document.querySelectorAll('.cell').forEach((cell) => {
+    let figures = document.querySelectorAll('.figure');
 
-        if (touchScreen()){
-            cell.removeEventListener('touchstart', startTouch);
-        } else {
-            cell.removeEventListener('mousedown', selectCell);
-        }
+    figures.forEach(figure => {
+        figure.removeEventListener('touchstart', startSwipe);
+        figure.removeEventListener('mousedown', selectCell);
     });
-
-    // document.querySelectorAll('img').forEach((img) => {
-
-    //     if (touchScreen()){
-    //         img.removeEventListener('touchstart', startTouch);
-    //     } else {
-    //         img.removeEventListener('mousedown', selectCell);
-    //     }
-    // });
 }
 
-const disableTapZoom = () => {
+const disableScreen = () => {
 
     const preventDefault = (e) => e.preventDefault();
-    const event = touchScreen() ? 'touchstart' : 'mousedown';
 
-    document.body.addEventListener(event, preventDefault, {passive: false});
+    document.addEventListener('touchstart', preventDefault, {passive: false});
+    document.addEventListener('mousedown', preventDefault, {passive: false});
 }
-
-const slideUp = () => {
-
-    let images = document.querySelectorAll('img');
-    let image1 = images[3]; 
-    let image2 = images[11]; 
-
-    let image1Rect = image1.getBoundingClientRect();
-    let image2Rect = image2.getBoundingClientRect();
-
-    image1.style.transform = `translateY(${image1Rect.top - image2Rect.top}px)`;
-}
-
-const newItems2 = () => {
-
-    let images = document.querySelectorAll('img');
-    let cells = document.querySelectorAll('.cell');
-
-    for (let c = 0; c < nCols; c++) {
-
-        let r1;
-
-        for (let r = nRows - 1; r >= 0; r--) {
-
-            if (board[r][c] != 0) continue; 
-
-            r1 = r1 || r + 1;
-
-            let  n = document.querySelectorAll(`[data-col="${c}"]`).length;
-            let delay = r1 == 1 ? 0 : 0.1 / (r1 - 1);
-            let image = document.createElement('img');
-
-            image.classList.add('new');
-            image.dataset.col = c;
-            image.dataset.row = r;
-
-
-            cells[cells.length - 1].after(image);
-
-            let image1 = images[c + 0]; 
-            let image2 = images[c + 8]; 
-            let image0Rect = image.getBoundingClientRect();
-            let image1Rect = image1.getBoundingClientRect();
-            let image2Rect = image2.getBoundingClientRect();
-
-            let val = Math.floor(Math.random() * 6) + 1
-
-            // board[r][c] = val;
-
-            image.src = `images/fruits/${fruits[val]}.svg`;
-            image.style.transform = `translate(${image1Rect.left - image0Rect.left}px, ${image1Rect.top - image0Rect.top - (image2Rect.top - image1Rect.top) * (n + 1)}px`;
-
-            let style = window.getComputedStyle(image);
-            let matrix = new WebKitCSSMatrix(style.transform);
-
-            image.style.transition = `transform 0.2s cubic-bezier(0.33, 0, 0.66, 0.33), opacity 0.1s ${n * delay}s ease-in`;
-
-            // image.style.transform = `translate(${Math.round(matrix.m41)}px, ${Math.round(matrix.m42 + (image2Rect.top - image1Rect.top) * r1)}px)`;
-            image.style.transform = `translate(${matrix.m41}px, ${matrix.m42 + (image2Rect.top - image1Rect.top) * r1}px)`;
-
-            image.style.opacity = 1;
-
-            // image.addEventLstener('transitionend', e => {
-
-
-            //     n--;
-
-            //     if (n == 0) console.log('ZERO');
-
-            //     image1.src = image.src;
-            //     image1.classList.remove('invisible');
-            //     image1.style.opacity = '';
-            //     image.remove();
-
-            // }, {once: true});
-        }
-    }
-}
-
-// const newImage = (col) => {
-
-//     console.log(col);
-
-//     let cells = document.querySelectorAll('.cell');
-//     let images = document.querySelectorAll('img');
-
-//     let image = document.createElement('img');
-
-//     image.classList.add('new');
-//     image.dataset.col = col;
-
-//     cells[cells.length - 1].after(image);
-
-//     let image1 = images[col + 0]; 
-//     let image2 = images[col + 8]; 
-
-//     let image0Rect = image.getBoundingClientRect();
-//     let image1Rect = image1.getBoundingClientRect();
-//     let image2Rect = image2.getBoundingClientRect();
-
-//     let val = Math.floor(Math.random() * 6) + 1
-
-//     image.src = `images/fruits/${fruits[val]}.svg`;
-
-//     image.style.transform = `translate(${image1Rect.left - image0Rect.left}px, ${image1Rect.top - image0Rect.top - (image2Rect.top - image1Rect.top)}px`;
-
-
-//     let style = window.getComputedStyle(image);
-//     let matrix = new WebKitCSSMatrix(style.transform);
-
-//     image.style.transition = 'transform 0.2s cubic-bezier(0.33, 0, 0.66, 0.33), opacity 0.5s ease-in';
-
-
-//     image.style.transform = `translate(${Math.round(matrix.m41)}px, ${Math.round(matrix.m42 + (image2Rect.top - image1Rect.top))}px)`;
-//     image.style.opacity = 1;
-
-//     // image.addEventListener('transitionend', e => {
-
-
-//     //     image2.src = image1.src;
-//     //     image2.classList.remove('invisible');
-
-//     // }, {once: true});
-
-
-
-//     // image.style.removeProperty('opacity');
-//     // image.classList.remove('invisible');
-// }
 
 const init = () => {
 
-    disableTapZoom();
+    disableScreen();
     setBoardSize();
     initBoard();
     fillBoard();
+    showBoard();
     enableTouch();
-
-
-    // slideUp();
-
-    // newImage(1);
 }
 
-window.onload = () => document.fonts.ready.then(init());
+window.onload = () => document.fonts.ready.then(init);

@@ -7,91 +7,159 @@
     <meta name="keywords" content="">
     <meta name="author" content="Alexander Berson">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="google" content="notranslate">
 
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <script src="js/match3.js" defer></script>
 </head>
 <body class="noselect">
+    <svg class="filter">
+        <defs>
+                <filter id="goo-1">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="blur" />    
+                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+                    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+                </filter>
+                <filter id="goo-2">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />    
+                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+                    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+                </filter>
+                <filter id="goo-3">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />    
+                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+                    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+                </filter>
+                <filter id="goo-4">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />    
+                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+                    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+                </filter>
+                <filter id="goo-5">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />    
+                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+                    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+                </filter>
+                <filter id="goo-6">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />    
+                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+                    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+                </filter>
+            </defs>
+    </svg>
     <div id="outer">
         <div id="middle">
             <div id ="inner">
                 <header>
-                    <h1><span>Match 3</span></h1>
+                    <h1><span>M</span><span>a</span><span>t</span><span>c</span><span>h</span> <span>3</span></h1>
                 </header>
                 <main>
-                    <h3><span>0</span></h3>
+                    <div class="top">
+                        <div class="score">0</div>
+                    </div>
                     <div class="board">
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div>
-                        <div class="cell"><img src=""></div> 
-                    </div>                           
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+                        <div class="cell"></div>
+
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                        <div class="figure"><img src=""></div>
+                    </div>   
+                    <div id="designed">Designed by Alexander Berson</div>                        
                 </main>
-                <footer>
-                    <div id="designed">Designed by Alexander Berson</div>
-                </footer>
             </div>
         </div>
     </div>
