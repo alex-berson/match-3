@@ -10,8 +10,8 @@
 }
 
 :root {
-    --board-size: 85vmin;
     --size: 7;
+    --board-size: 85vmin;
     --red: #e23838;
     --orange: #f78200;
     --yellow: #ffb900;
@@ -52,7 +52,7 @@ h1 {
     color: silver;
     text-align: center;
     font-size: 25.5vw;
-    margin-top: 0;
+    margin-top: -10px;
     filter: url(#goo-1);
 }
 
@@ -88,19 +88,20 @@ main {
     width: calc(var(--board-size) + 21px);
     height: calc(var(--board-size) / var(--size) + var(--board-size) + 21px);
     margin: auto;
-    margin-top: calc(var(--board-size) / var(--size) * -1 / 2);
+    margin-top: calc(var(--board-size) / var(--size) * -1 / 1.2);
 }
 
 .top {
     position: relative;
     width: calc(var(--board-size) + 21px);
     height: calc(var(--board-size) / var(--size) / 1.5);
+    border-top: calc(var(--board-size) / var(--size) / 3) solid white;
     background-color: white;
     z-index: 100;
 }
 
 .score {
-    --radius: 20px;
+    --radius: 7px;
     display: grid;
     place-items: center;
     font-size: 30px;
@@ -109,7 +110,10 @@ main {
     width: calc(var(--board-size) / var(--size) * 2);
     height: calc(var(--board-size) / var(--size) / 1.5);
     margin: auto;
-    background: linear-gradient(60deg, #f67a07, #fda903) border-box;
+    /* background: linear-gradient(to right, #f47707, #fdab01) border-box; */
+    background: linear-gradient(to right, var(--red), var(--orange), var(--yellow), var(--green), var(--blue), var(--purple)) border-box;
+    background-size: 600%;
+    background-position: 21%;
     border-left: var(--radius) solid transparent;
     border-right: var(--radius) solid transparent;
     border-radius: calc(2 * var(--radius)) calc(2 * var(--radius)) 0 0 / var(--radius);
@@ -125,6 +129,7 @@ main {
 
 .board {
     display: grid;
+    position: relative;
     grid-template-columns: repeat(var(--size), 1fr);
     width: calc(var(--board-size) + 1px);
     height: calc(var(--board-size) + 1px);
@@ -133,6 +138,17 @@ main {
     border-radius: 7px;
     padding: 10px;
     background: linear-gradient(to bottom right, var(--red), var(--orange), var(--yellow), var(--green), var(--blue), var(--purple));
+}
+
+.board::after {
+    position: absolute;
+    content: '';
+    width: calc(var(--board-size) + 1px);
+    height: 10px;
+    left: 10px;
+    background: linear-gradient(to right, var(--red), var(--orange), var(--yellow), var(--green), var(--blue), var(--purple));
+    background-size: 215%;
+    background-position: 5%;
 }
 
 .cell {
@@ -147,93 +163,6 @@ main {
     height: calc(var(--board-size) / var(--size) - 1px);
 }
 
-/* .square { */
-    /* width: calc(var(--board-size) / var(--size) * 0.8); */
-    /* height: calc(var(--board-size) / var(--size) * 0.8); */
-    /* border-radius: calc(var(--board-size) / var(--size) * 0.1); */
-    /* background-color: red; */
-/* } */
-
-/* .figure {
-    --height: calc((var(--board-size) / var(--size) - 1px) * 0.85);
-    --width: calc((var(--board-size) / var(--size) - 1px) * 0.85);
-}
-
-[data-figure="square"]  {
-    filter: url(#goo-5);
-}
-
-[data-figure="triangle"]  {
-    filter: url(#goo-6);
-}
-
-[data-figure="pentagon"]  {
-    filter: url(#goo-4);
-}
-
-[data-figure="hexagon"]  {
-    filter: url(#goo-4);
-}
-
-[data-figure="octagon"]  {
-    filter: url(#goo-2);
-}
-
-[data-figure="square"]::before {
-    content: "";
-    display: block;
-    height: var(--height);
-    width: var(--height);
-    background-color: var(--red);
-}
-
-[data-figure="circle"]::before {
-    content: "";
-    display: block;
-    height: var(--height);
-    width: var(--height);
-    background: var(--yellow);
-    border-radius: 50%;
-}
-
-[data-figure="triangle"]::before {
-    content: "";
-    display: block;
-    height: calc(var(--height) * 1.1);
-    width: calc(var(--height) * 1.1 * 1.15);
-    background: var(--blue);
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-    margin-bottom: 10%;
-}
-
-[data-figure="pentagon"]::before {
-    content: "";
-    display: block;
-    height: calc(var(--height) * 1.05);
-    width: calc(var(--height) * 1.05 * 1.05);
-    background: var(--orange);
-    clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
-    margin-bottom: 3%;
-}
-
-[data-figure="hexagon"]::before {
-    content: "";
-    display: block;
-    height: var(--height);
-    width: calc(var(--height) * 1.15);
-    background: var(--green);
-    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-}
-
-[data-figure="octagon"]::before {
-    content: "";
-    display: block;
-    height: var(--height);
-    width: var(--height);
-    background: var(--purple);
-    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
-} */
-
 .figure {
     display: grid;
     place-items: center;
@@ -241,6 +170,7 @@ main {
     cursor: pointer;
     height: calc((var(--board-size) / var(--size) - 1px) * 0.8);
     width: calc(var(--board-size) / var(--size) - 1px);
+    transition: opacity 0.5s ease-in;
 }
 
 .figure img {
@@ -263,8 +193,11 @@ main {
 
 .invisible {
     opacity: 0;
-    transform: scale(1.3);
-    transition: opacity 0.5s linear, transform 0.5s linear;
+}
+
+.disappear {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
 }
 
 .selected {
@@ -284,11 +217,31 @@ main {
     transition: transform 0.2s linear;
 }
 
+.volley {
+    animation: volley 0.3s ease-in-out forwards;
+}
+
 #designed {
+    position: relative;
     text-align: center;
     color: white;
     font-size: 9.2px; 
     margin-top: -12px;
+}
+
+@keyframes volley {
+
+    0% {
+        transform: scale(1); 
+    }
+  
+    50% {
+        transform: scale(1.1); 
+    } 
+
+    100% {
+        transform: scale(1); 
+    } 
 }
 
 @media (orientation: landscape) and (max-height: 460px) {
@@ -298,7 +251,6 @@ main {
     }
 
     .board {
-        /* margin-top: 20px; */
         border-radius: 7px;
     }
 }
@@ -310,16 +262,17 @@ main {
     }
 
     h1 {
-        font-size: 7.55em;
+        font-size: 121px;
     }
 
     main {
         width: calc(var(--board-size-big) + 31px);
         height: calc(var(--board-size-big) / var(--size) + var(--board-size-big) + 31px);
-        margin-top: calc(var(--board-size-big) / var(--size) * -1 / 1.5);
+        margin-top: calc(var(--board-size-big) / var(--size) * -1 / 1);
     }
 
     .top {
+        border-top: calc(var(--board-size-big) / var(--size) / 3) solid white;
         width: calc(var(--board-size-big) + 31px);
         height: calc(var(--board-size-big) / var(--size) / 1.5);
     }
@@ -336,6 +289,14 @@ main {
         height: calc(var(--board-size-big) + 1px);
         padding: 15px;
         gap: 1px;
+    }
+
+    .board::after {
+        width: calc(var(--board-size-big) + 1px);
+        height: 15px;
+        left: 15px;
+        background-size: 215%;
+        background-position: 5%;
     }
 
     .cell {
