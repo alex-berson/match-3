@@ -22,6 +22,7 @@
 
 body {
     font-family: 'Roboto', sans-serif;
+    background-color: white;
     overflow: hidden;
     cursor: default;
     margin: 0;
@@ -47,6 +48,22 @@ body {
     margin-left: auto;
     margin-right: auto;
 }
+
+/* .title {
+    display: flex;
+    justify-content: space-between;
+    width: calc(var(--board-size) + 20px);
+    height: calc((var(--board-size)) / 4);
+    margin: auto;
+    margin-bottom: 60px;
+}
+
+.char {
+    display: grid;
+    place-items: center;
+    width: auto;
+    height: calc(var(--board-size) / 4);
+} */
 
 h1 {
     color: silver;
@@ -110,7 +127,6 @@ main {
     width: calc(var(--board-size) / var(--size) * 2);
     height: calc(var(--board-size) / var(--size) / 1.5);
     margin: auto;
-    /* background: linear-gradient(to right, #f47707, #fdab01) border-box; */
     background: linear-gradient(to right, var(--red), var(--orange), var(--yellow), var(--green), var(--blue), var(--purple)) border-box;
     background-size: 600%;
     background-position: 21%;
@@ -157,7 +173,6 @@ main {
     align-items: center;
     position: relative;
     color: white;
-    font-size: 3.5em;
     background-color: white;
     width: calc(var(--board-size) / var(--size) - 1px);
     height: calc(var(--board-size) / var(--size) - 1px);
@@ -249,10 +264,22 @@ main {
     h1 {
         display: none;
     }
+}
 
-    .board {
-        border-radius: 7px;
+@media (prefers-color-scheme: dark) {
+
+    body, .top, .cell {
+        background-color: black;
     }
+
+    .top {
+        border-color: black !important;
+    }
+
+    .score, #designed {
+        color: black;
+    }
+
 }
 
 @media (min-width: 460px) and (min-height: 460px) {
@@ -260,6 +287,20 @@ main {
     :root {
         --board-size-big: 400px;
     }
+
+    /* .title {
+        display: flex;
+        justify-content: space-between;
+        width: calc(var(--board-size-big) + 30px);
+        height: calc((var(--board-size-big)) / 4);
+        margin: auto;
+        margin-bottom: 80px;
+    }
+
+    img {
+        height: calc(var(--board-size-big) / 4);
+        width: auto;
+    } */
 
     h1 {
         font-size: 121px;

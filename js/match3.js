@@ -15,6 +15,8 @@ const shapes = {
 
 const showBoard = () => document.body.classList.add('visible');
 
+const clearStorage = () => localStorage.removeItem('match3-board');
+
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const neighbour = (r1,c1,r2,c2) => (Math.abs(r2 - r1) + Math.abs(c2 - c1) == 1);
@@ -41,7 +43,37 @@ const setBoardSize = () => {
     document.documentElement.style.setProperty('--board-size', `${boardSize}px`);
 }
 
-const validVal = (i, j, val) => {
+const fillBoard = () => {
+
+    if (localStorage.getItem('match3-board') != null) {
+
+        let data = JSON.parse(localStorage.getItem('match3-board'));
+
+        score = data.score;
+        board = data.board;
+
+        return;
+    }
+
+    do {
+
+        for (let r = 0; r < N_ROWS; r++) {
+            for (let c = 0; c < N_COLS; c++) {
+
+                let val;
+
+                do {
+                    val = Math.floor(Math.random() * N_SHAPES) + 1;
+                } while (!notMatching(r, c, val));
+
+                board[r][c] = val;
+            } 
+        }
+
+    } while (gameOver(board));
+}
+
+const notMatching = (i, j, val) => {
 
     if (i > 1 && board[i - 1][j] == val && board[i - 2][j] == val) return false;
     if (j > 1 && board[i][j - 1] == val && board[i][j - 2] == val) return false;
@@ -51,34 +83,42 @@ const validVal = (i, j, val) => {
 
 const placeFigures = async () => {
 
+    let scoreEl = document.querySelector('.score');
     let cells = document.querySelectorAll('.cell');
-    let figures = document.querySelectorAll('.figure');
+    // let figures = document.querySelectorAll('.figure');
+
+    scoreEl.innerText = score;
 
     for (let r = 0; r < N_ROWS; r++) {
         for (let c = 0; c < N_COLS; c++) {
 
-            let val;
-
-            do {
-                val = Math.floor(Math.random() * N_SHAPES) + 1;
-            } while (!validVal(r, c, val));
-
-            board[r][c] = val;
-
+            let val = board[r][c];
             let idx = r * N_COLS + c;
-            let figure = figures[idx];
-            figures[idx].firstChild.src = `images/figures/${shapes[val]}.svg`;
+            // let figure = figures[idx];
+            let figure = createFigure();
+            figure.firstChild.src = `images/figures/${shapes[val]}.svg`;
 
             figure.dataset.r = r;
             figure.dataset.c = c;
 
-            let [offsetX, offsetY] = getOffsets(figures[idx], cells[idx]);
+            let [offsetX, offsetY] = getOffsets(figure, cells[idx]);
             let style = window.getComputedStyle(figure);
             let matrix = new WebKitCSSMatrix(style.transform);
 
             figure.style.transform = `translate(${matrix.m41 + offsetX}px, ${matrix.m42 + offsetY}px)`;
         } 
     }
+}
+
+const createFigure = () => {
+
+    let board = document.querySelector('.board');
+    let template = document.querySelector('.figure-template');
+    let figure = template.content.firstElementChild.cloneNode(true);
+
+    board.appendChild(figure);
+
+    return figure;
 }
 
 const getOffsets = (figure, cell) => {
@@ -121,7 +161,7 @@ const selectCell = async (e) => {
         return;
     }
 
-    processMove(r, c, r2, c2);    
+    processMove(r, c, r2, c2);
 }
 
 const startSwipe = (e) => {
@@ -232,6 +272,10 @@ const processMove = async (r1, c1, r2, c2) => {
         return;
     }
 
+    // let moves = getMoves(board);
+    // console.log(moves);
+
+    saveBoard();
     enableTouch();
 }
 
@@ -412,7 +456,6 @@ const fillEmpty = (empty) => {
     }
 }
 
-
 const slideDownOld = async (falling) => {
 
     let cells = document.querySelectorAll('.cell');
@@ -447,23 +490,25 @@ const slideDownNew = async (empty) => {
     let cells = document.querySelectorAll('.cell');
 
     await Promise.all(empty.map(item => new Promise(async resolve => {
-        
+
         let [n, r, c] = item;
         let val= board[r][c];
-        let img = document.createElement('img');
-        let figure = document.createElement('div');
+        // let img = document.createElement('img');
+
+        let figure = createFigure();
+        // let figure = document.createElement('div');
         let height = cells[0].getBoundingClientRect().height;
         let delay = n * 200 / (n + r + 1);
 
         if (delay > 0) await sleep(delay);
 
-        figure.classList.add('figure');
-        figure.appendChild(img);
-        cells[cells.length - 1].insertAdjacentElement('afterend', figure);
+        // figure.classList.add('figure');
+        // figure.appendChild(img);
+        // cells[cells.length - 1].insertAdjacentElement('afterend', figure);
 
         let [offsetX, offsetY] = getOffsets(figure, cells[c]);
         offsetY = offsetY - height;
-            
+
         figure.firstChild.src = `images/figures/${shapes[val]}.svg`;
         figure.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
 
@@ -558,10 +603,94 @@ const gameOver = (board) => {
     return true;
 }
 
+const saveBoard = () => {
+
+  let data = {score, board};
+
+  localStorage.setItem('match3-board', JSON.stringify(data));
+};
+
+
+const getMoves = (board) => {
+
+    let moves = [];
+
+    const validCoord = (r, c) => r >= 0 && r < N_ROWS && c >= 0 && c < N_COLS;
+
+    const checkMatch = (r, c) => {
+
+        let val = board[r][c];
+        let count = 1;
+        let col = c - 1;
+
+        while (col >= 0 && board[r][col] == val) {
+            count++;
+            col--; 
+        }
+
+        col = c + 1;
+
+        while (col < N_COLS && board[r][col] == val) {
+            count++;
+            col++;
+        }
+
+        if (count >= 3) return true;
+
+        count = 1;
+        let row = r - 1;
+
+        while (row >= 0 && board[row][c] == val) {
+            count++;
+            row--;
+        }
+
+        row = r + 1;
+
+        while (row < N_ROWS && board[row][c] == val) {
+            count++;
+            row++;
+        }
+
+        return count >= 3;
+    }
+
+    const trySwap = (r1, c1, r2, c2) => {
+
+        if (r2 == r1 && c1 == c2 || board[r1][c1] == board[r2][c2]) return false;
+
+        [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+
+        let match = checkMatch(r1, c1) || checkMatch(r2, c2);
+
+        [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+
+        return match;
+    }
+
+    for (let r = 0; r < N_ROWS; r++) {
+        for (let c = 0; c < N_COLS; c++) {
+            if (validCoord(r, c + 1) && trySwap(r, c, r, c + 1)) {
+                moves.push([r, c, r, c + 1]);
+            }
+
+            if (validCoord(r + 1, c) && trySwap(r, c, r + 1, c)) {
+                moves.push([r, c, r + 1, c]);
+            }
+        }
+    }
+
+    return moves;
+}
+
 const endGame = async () => {
+
+    let event = new Event('touchstart'); //
 
     let board = document.querySelector('.board');
     let shapes = [...document.querySelectorAll('.figure:not(.invisible) img')];
+
+    clearStorage();
 
     await Promise.all(shapes.map(shape => new Promise(async resolve => {
 
@@ -578,6 +707,8 @@ const endGame = async () => {
 
     board.addEventListener('touchstart', resetGame);
     board.addEventListener('mousedown', resetGame);
+
+    if (aiMode() && score < 3000) setTimeout(() => board.dispatchEvent(event), 500); //
 }
 
 const resetGame = async () => {
@@ -597,6 +728,7 @@ const resetGame = async () => {
     score.innerText = 0;
 
     initBoard();
+    fillBoard();
     placeFigures();
 
     await Promise.all(figures.map(figure => new Promise(async resolve => {
@@ -605,7 +737,34 @@ const resetGame = async () => {
     })));
 
     enableTouch();
+
+    // if (aiMode()) setTimeout(aiPlay, 500);
 }
+
+// const aiMode = () => {
+
+//     let queryString = window.location.search;
+//     let urlParams = new URLSearchParams(queryString);
+//     let mode = urlParams.get('mode');
+
+//     return mode == 'ai';
+
+//     // return true;
+// }
+
+// const aiPlay = async () => {
+
+//     do {
+//         let moves = getMoves(board);
+//         let move = moves[Math.floor(Math.random() * moves.length)];
+
+//         if (moves.length == 0) return;
+
+//         await processMove(...move);
+//         await sleep(500);
+
+//     } while (true);
+// }
 
 const enableTouch = () => {
 
@@ -640,9 +799,12 @@ const init = () => {
     disableScreen();
     setBoardSize();
     initBoard();
+    fillBoard();
     placeFigures();
     showBoard();
     enableTouch();
+
+    // if (aiMode()) setTimeout(aiPlay, 1500);
 }
 
 window.onload = () => document.fonts.ready.then(init);
