@@ -1,47 +1,36 @@
 <!doctype html>
 <html lang="en" translate="no">
 <head>
-    <title><Match 3></title>
+    <title>Match 3</title>
     <meta charset="UTF-8">
-    <meta name="description" content="">
-    <meta name="keywords" content="">
+    <meta name="description" content="Score as many points as possible by matching three or more identical shapes in a row">
+    <meta name="keywords" content="game,puzzle,play,online,shape,tile,swap,row,line,color,logic,tactics,fun,kids,family">
     <meta name="author" content="Alexander Berson">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="google" content="notranslate">
 
+    <meta name="apple-itunes-app" content="app-id=6752211780">
+    <meta name="google" content="notranslate">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Match 3">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/png" href="images/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
+
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <script src="js/match3.js" defer></script>
+
+    <script src="js/preview.js" defer></script>
 </head>
 <body class="noselect">
     <svg class="filter">
         <defs>
-                <filter id="goo-1">
+                <filter id="goo">
                     <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="blur" />
-                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
-                    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-                </filter>
-                <filter id="goo-2">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
-                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
-                    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-                </filter>
-                <filter id="goo-3">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
-                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
-                    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-                </filter>
-                <filter id="goo-4">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
-                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
-                    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-                </filter>
-                <filter id="goo-5">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
-                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
-                    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-                </filter>
-                <filter id="goo-6">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
                     <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
                     <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
                 </filter>
@@ -52,68 +41,34 @@
             <div id ="inner">
                 <header>
                     <h1><span>M</span><span>a</span><span>t</span><span>c</span><span>h</span> <span>3</span></h1>
-                    <!-- <div class="title"> -->
-                        <!-- <img class="char" src="images/figures/square.svg"><img class="char" src="images/figures/circle.svg"><img class="char" src="images/figures/triangle.svg"> -->
-                    <!-- </div> -->
-
                 </header>
                 <main>
+                    <!-- <div class="top">
+                        <div class="score">0</div>
+                    </div> -->
                     <div class="top">
+                        <svg class="tab" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+                            <defs>
+                                <linearGradient id="tab-grad" gradientUnits="userSpaceOnUse" x1="-126" y1="0" x2="594" y2="0">
+                                    <stop offset="0.0" stop-color="#e23838"/>
+                                    <stop offset="0.2" stop-color="#f78200"/>
+                                    <stop offset="0.4" stop-color="#ffb900"/>
+                                    <stop offset="0.6" stop-color="#5ebd3e"/>
+                                    <stop offset="0.8" stop-color="#009cdf"/>
+                                    <stop offset="1.0" stop-color="#973999"/>
+                                </linearGradient>
+                            </defs>
+                            <!-- <path fill="url(#tab-grad)" d="M0 30 C15 30 15 0 30 0 H90 C105 0 105 30 120 30 V32 H0 Z"/> -->
+                             <path fill="url(#tab-grad)" d="M0 30 C24 30 6 0 30 0 H90 C114 0 96 30 120 30 V32 H0 Z"/>
+                        </svg>
                         <div class="score">0</div>
                     </div>
                     <div class="board">
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-                        <div class="cell"></div>
-
-                        <template class="figure-template">
-                            <div class="figure"><img src=""></div>
+                        <template class="cell-template">
+                            <div class="cell"></div>
+                        </template>
+                        <template class="shape-template">
+                            <div class="shape"><img src=""></div>
                         </template>
                     </div>
                     <div id="designed">Designed by Alexander Berson</div>
