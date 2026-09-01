@@ -1,5 +1,6 @@
 let board, score;
 let scoreCounting;
+let imageCache;
 
 const N_ROWS = 7;
 const N_COLS = 7;
@@ -52,28 +53,6 @@ const setBoardSize = () => {
     document.documentElement.style.setProperty('--board-size', `${boardSize}px`);
 }
 
-const fixHeader = () => {
-
-    document.addEventListener('visibilitychange', async () => {
-
-        // let shapes = document.querySelectorAll('.shape');
-
-        let header = document.querySelector('header');
-
-        header.classList.add('hidden');
-        await sleep(0);
-        header.offsetHeight;
-        header.classList.remove('hidden');
-
-        // shapes.forEach(shape => shape.remove());
-
-        // createShapes();
-        // fillBoard();
-
-        // processMove();
-    });
-}
-
 const generateBoard = () => {
 
     const notMatching = (i, j, val) => {
@@ -103,12 +82,10 @@ const generateBoard = () => {
 
                 do {
                     val = Math.floor(Math.random() * N_SHAPES) + 1;
-
-                    // val = seqShapes.shift(); //
                 } while (!notMatching(r, c, val));
 
                 board[r][c] = val;
-            } 
+            }
         }
 
     } while (gameOver(board));
@@ -157,7 +134,7 @@ const fillBoard = async () => {
             let matrix = new DOMMatrix(style.transform);
 
             shape.style.transform = `translate(${matrix.m41 + offsetX}px, ${matrix.m42 + offsetY}px)`;
-        } 
+        }
     }
 }
 
@@ -275,7 +252,7 @@ const processMove = async (r1, c1, r2, c2) => {
     let tempBoard = board.map(arr => arr.slice());
 
     disableTouch();
-    
+
     updateBoard(tempBoard, r1, c1, r2, c2);
 
     let matches = findMatches(tempBoard);
@@ -419,15 +396,6 @@ const swapShapes = async (matches, r1, c1, r2, c2) => {
     })));
 }
 
-// const updateScore = (matches) => {
-
-//     let scoreEl = document.querySelector('.score');
-
-//     score += new Set(matches.flat().map(([r, c]) => r * N_COLS + c)).size;
-
-//     scoreEl.innerText = score;
-// }
-
 const updateScore = async (matches) => {
 
     let scoreEl = document.querySelector('.score');
@@ -446,7 +414,6 @@ const updateScore = async (matches) => {
 
         displayed++;
         scoreEl.innerText = displayed;
-
     }
 
     scoreCounting = false;
@@ -479,10 +446,10 @@ const compressColumns = () => {
             if (board[r][c] != 0) continue;
 
             for (let r2 = r - 1; r2 >= 0; r2--) {
-    
+
                 if (board[r2][c] != 0) {
                     [board[r][c], board[r2][c]] = [board[r2][c], board[r][c]];
-                    falling.push([r2,c,r,c]);
+                    falling.push([r2, c, r, c]);
                     break;
                 }
             }
@@ -506,15 +473,13 @@ const compressColumns = () => {
 }
 
 const fillEmptyCells = (empty) => {
-    
+
     for (let item of empty) {
 
         let [_, r, c] = item;
         let val = Math.floor(Math.random() * N_SHAPES) + 1;
 
         board[r][c] = val;
-
-        // board[r][c] = seqShapes.shift(); //
     }
 }
 
@@ -546,54 +511,6 @@ const slideDownShapes = async (falling) => {
         }, {once: true});
     })));
 }
-
-// const dropNewShapes = async (empty) => {
-
-//     const DURATION = 200;
-    
-//     let cells = document.querySelectorAll('.cell');
-
-//     await Promise.all(empty.map(item => new Promise(async resolve => {
-
-//         let [n, r, c] = item;
-//         let val= board[r][c];
-//         let shape = createShape();
-//         let height = cells[0].getBoundingClientRect().height;
-//         let delay = n * DURATION / (n + r + 1);
-
-//         let [offsetX, offsetY] = getOffsets(shape, cells[c]);
-//         offsetY = offsetY - height;
-
-//         shape.firstChild.src = `images/shapes/${shapes[val]}.svg`;
-//         shape.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-
-//         if (delay > 0) await sleep(delay);
-
-//         [offsetX, offsetY] = getOffsets(shape, cells[r * N_COLS + c]);
-
-//         let style = window.getComputedStyle(shape);
-//         let matrix = new DOMMatrix(style.transform);
-
-//         shape.dataset.r = r;
-//         shape.dataset.c = c;
-
-//         shape.classList.add('fall', 'visible');
-//         shape.style.transitionDuration = `${DURATION - delay}ms`;
-
-//         requestAnimationFrame(() => {
-//             shape.style.transform = `translate(${matrix.m41 + offsetX}px, ${matrix.m42 + offsetY}px)`;
-//         });
-
-//         shape.addEventListener('transitionend', () => {
-
-//             shape.classList.remove('fall');
-//             shape.style.removeProperty('transition-duration');
-
-//             resolve();
-
-//         }, { once: true });
-//     })));
-// }
 
 const dropNewShapes = async (empty) => {
 
@@ -627,7 +544,7 @@ const dropNewShapes = async (empty) => {
         shape.addEventListener('transitionend', () => {
             shape.classList.remove('fall');
             resolve();
-        }, { once: true });
+        }, {once: true});
     })));
 }
 
@@ -703,10 +620,7 @@ const saveBoard = () => {
     localStorage.setItem('match3-board', JSON.stringify(data));
 }
 
-
 const endGame = async () => {
-
-    // let event = new Event('touchstart'); //
 
     let board = document.querySelector('.board');
     let shapes = [...document.querySelectorAll('.shape:not(.invisible) img')];
@@ -723,83 +637,16 @@ const endGame = async () => {
 
             resolve();
 
-        }, { once: true });
+        }, {once: true});
     })));
 
     board.addEventListener('touchstart', resetGame);
     board.addEventListener('mousedown', resetGame);
-
-    // if (aiMode() && score < 3000) setTimeout(() => board.dispatchEvent(event), 500); //
-
-    // setTimeout(() => board.dispatchEvent(event), 1000); //
-
 }
-
-// const endGame = async () => {
-
-//     let board = document.querySelector('.board');
-//     let shapes = [...document.querySelectorAll('.shape:not(.invisible)')];
-
-//     localStorage.removeItem('match3-board');
-
-//     await Promise.all(shapes.map(shape => new Promise(resolve => {
-
-//         let img = shape.firstChild;
-//         let delay = (Number(shape.dataset.r) + Number(shape.dataset.c)) * 50;
-
-//         img.style.animationDelay = `${delay}ms`;
-//         img.classList.add('volley');
-
-//         img.addEventListener('animationend', () => {
-
-//             img.classList.remove('volley');
-//             img.style.removeProperty('animation-delay');
-
-//             resolve();
-
-//         }, { once: true });
-//     })));
-
-//     board.addEventListener('touchstart', resetGame);
-//     board.addEventListener('mousedown', resetGame);
-// }
-
-// const resetGame = async () => {
-
-//     let board = document.querySelector('.board');
-//     let score = document.querySelector('.score');
-//     let shapes = [...document.querySelectorAll('.shape')];
-
-//     board.removeEventListener('touchstart', resetGame);
-//     board.removeEventListener('mousedown', resetGame);
-
-//     await Promise.all(shapes.map(shape => new Promise(async resolve => {
-//         shape.classList.add('invisible');
-//         shape.addEventListener('transitionend', () => {
-//             shape.removeAttribute('style');
-//             resolve();
-//         }, {once: true});
-//     })));
-
-//     score.innerText = 0;
-
-//     initBoard();
-//     generateBoard();
-//     fillBoard();
-
-//     await Promise.all(shapes.map(shape => new Promise(async resolve => {
-//         shape.classList.remove('invisible');
-//         shape.addEventListener('transitionend', resolve, {once: true});
-//     })));
-
-//     enableTouch();
-
-//     // if (aiMode()) setTimeout(aiPlay, 500);
-// }
 
 const resetGame = async () => {
 
-    const DURATION =300;
+    const DURATION = 300;
 
     let boardEl = document.querySelector('.board');
     let scoreEl = document.querySelector('.score');
@@ -879,103 +726,39 @@ const resetGame = async () => {
     enableTouch();
 }
 
-const aiMode = () => {
+const handleVisibility = () => {
 
-    let queryString = window.location.search;
-    let urlParams = new URLSearchParams(queryString);
-    let mode = urlParams.get('mode');
+    document.addEventListener('visibilitychange', () => {
 
-    // return mode == 'ai';
-
-    return true;
+        if (document.visibilityState != 'visible') return;
+        
+        preloadImages();
+        fixHeader();
+    });
 }
 
-const aiPlay = async () => {
+const preloadImages = () => {
 
-    do {
-        let moves = getMoves(board);
-        // let move = moves[Math.floor(Math.random() * moves.length)];
+    imageCache = Object.values(shapes).map(shape => {
 
-        if (moves.length == 0) return;
+        let image = new Image();
 
-        let move = seqMoves.shift(); //
+        image.src = `images/shapes/${shape}.svg`;
 
-        await processMove(...move);
-        await sleep(200);
+        return image;
+    });
 
-    } while (true);
+    return Promise.all(imageCache.map(image => image.decode().catch(() => {})));
 }
 
-const getMoves = (board) => {
+const fixHeader = async () => {
 
-    let moves = [];
+    let header = document.querySelector('header');
 
-    const validCoord = (r, c) => r >= 0 && r < N_ROWS && c >= 0 && c < N_COLS;
-
-    const checkMatch = (r, c) => {
-
-        let val = board[r][c];
-        let count = 1;
-        let col = c - 1;
-
-        while (col >= 0 && board[r][col] == val) {
-            count++;
-            col--;
-        }
-
-        col = c + 1;
-
-        while (col < N_COLS && board[r][col] == val) {
-            count++;
-            col++;
-        }
-
-        if (count >= 3) return true;
-
-        count = 1;
-        let row = r - 1;
-
-        while (row >= 0 && board[row][c] == val) {
-            count++;
-            row--;
-        }
-
-        row = r + 1;
-
-        while (row < N_ROWS && board[row][c] == val) {
-            count++;
-            row++;
-        }
-
-        return count >= 3;
-    }
-
-    const trySwap = (r1, c1, r2, c2) => {
-
-        if (r2 == r1 && c1 == c2 || board[r1][c1] == board[r2][c2]) return false;
-
-        [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
-
-        let match = checkMatch(r1, c1) || checkMatch(r2, c2);
-
-        [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
-
-        return match;
-    }
-
-    for (let r = 0; r < N_ROWS; r++) {
-        for (let c = 0; c < N_COLS; c++) {
-            if (validCoord(r, c + 1) && trySwap(r, c, r, c + 1)) {
-                moves.push([r, c, r, c + 1]);
-            }
-
-            if (validCoord(r + 1, c) && trySwap(r, c, r + 1, c)) {
-                moves.push([r, c, r + 1, c]);
-            }
-        }
-    }
-
-    return moves;
+    header.classList.add('hidden');
+    await sleep(0);
+    header.offsetHeight;
+    header.classList.remove('hidden');
 }
 
 const enableTouch = () => {
@@ -1012,26 +795,18 @@ const registerServiceWorker = () => {
 
 const init = async () => {
 
-    localStorage.removeItem('match3-board'); //
-    
-    // registerServiceWorker();
+    registerServiceWorker();
     disableScreen();
+    handleVisibility();
     createBoard();
     setBoardSize();
-    fixHeader();
     initBoard();
     generateBoard();
     createShapes();
+    await preloadImages();
     fillBoard();
     showBoard();
-    // await sleep(2000)
-    // fillBoard();
-
     enableTouch();
-
-    // if (aiMode()) setTimeout(aiPlay, 1500);
-
-    // endGame();
 }
 
 window.onload = () => document.fonts.ready.then(init);

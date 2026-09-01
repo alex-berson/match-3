@@ -7,7 +7,6 @@
     <meta name="keywords" content="game,puzzle,play,online,shape,tile,swap,row,line,color,logic,tactics,fun,kids,family">
     <meta name="author" content="Alexander Berson">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="google" content="notranslate">
 
     <meta name="apple-itunes-app" content="app-id=6752211780">
     <meta name="google" content="notranslate">
@@ -17,35 +16,33 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" type="image/png" href="images/favicon-96x96.png" sizes="96x96">
     <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
-    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="icon" href="images/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
 
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <script src="js/match3.js" defer></script>
-
-    <script src="js/preview.js" defer></script>
 </head>
 <body class="noselect">
-    <svg class="filter">
+    <svg class="filter" aria-hidden="true">
         <defs>
-                <filter id="goo">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="blur" />
-                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
-                    <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-                </filter>
-            </defs>
+            <filter id="goo">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="1"/>
+                <feColorMatrix mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 7 -3"/>
+            </filter>
+            <filter id="goo-big">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="1.35"/>
+                <feColorMatrix mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 9.5 -4.75"/>
+            </filter>
+        </defs>
     </svg>
     <div id="outer">
         <div id="middle">
-            <div id ="inner">
+            <div id="inner">
                 <header>
                     <h1><span>M</span><span>a</span><span>t</span><span>c</span><span>h</span> <span>3</span></h1>
                 </header>
                 <main>
-                    <!-- <div class="top">
-                        <div class="score">0</div>
-                    </div> -->
                     <div class="top">
                         <svg class="tab" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
                             <defs>
@@ -58,8 +55,7 @@
                                     <stop offset="1.0" stop-color="#973999"/>
                                 </linearGradient>
                             </defs>
-                            <!-- <path fill="url(#tab-grad)" d="M0 30 C15 30 15 0 30 0 H90 C105 0 105 30 120 30 V32 H0 Z"/> -->
-                             <path fill="url(#tab-grad)" d="M0 30 C24 30 6 0 30 0 H90 C114 0 96 30 120 30 V32 H0 Z"/>
+                            <path fill="url(#tab-grad)" d="M0 30 C24 30 6 0 30 0 H90 C114 0 96 30 120 30 V32 H0 Z"/>
                         </svg>
                         <div class="score">0</div>
                     </div>
